@@ -1,3 +1,5 @@
+#pragma config(UART_Usage, UART1, uartVEXLCD, baudRate19200, IOPins, None, None)
+#pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
 #pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, dgtl7,  fourBarEncoder, sensorQuadEncoder)
 #pragma config(Sensor, dgtl9,  leftEncoder,    sensorQuadEncoder)
@@ -21,6 +23,10 @@
 #pragma userControlDuration(120)
 
 #include "Vex_Competition_Includes.c"   //Main competition background code...do not modify!
+
+// Include the lcd button get utility function
+#include "getlcdbuttons.c"
+
 
 // Parameter DEFINEs
 #define SLIDE_MAX_HEIGHT		  		1130
@@ -51,6 +57,9 @@
 #define FOUR_BAR_PID_INDEX 				2
 // This is the preset height for picking up the skyrise section at the highest point (to deliver the first one)
 #define HEIGHT_FOR_FIRST_SKYRISE_SECTION 229
+
+#define USER_CONTROL_LOOP_TIME	25 // Milliseconds
+#define PID_LOOP_TIME						25
 
 // Structure to store PID parameters -- note we have 3; one for each slide and one for the Arm
 typedef struct {
@@ -117,16 +126,6 @@ task PidController()
 	float max_mismatch = 0.0;
 
 	int i, j;
-	int loop_time = 25; // Milliseconds
-
-	float speed_history[NUM_PID_CONTROLS];
-
-	// Initialize speed history
-	for(i=0; i < NUM_PID_CONTROLS; i++) {
-
-		speed_history = 0.0;
-
-	}
 
 	for (i = 0; i < NUM_PID_CONTROLS; i++) {
 		pid[i].previous_error  = 0;
@@ -215,7 +214,7 @@ task PidController()
 		}
 
 		// Run at 40Hz
-		wait1Msec( loop_time );
+		wait1Msec( PID_LOOP_TIME );
 	}
 }
 
@@ -454,10 +453,6 @@ void move_slide_to_position(int position) {
 	pid[RIGHT_LIFT_PID_INDEX].pidRequestedValue = position;
 }
 
-#define BLUE_SKYRISE 0
-#define BLUE_NO 1
-#define RED_SKYRISE 2
-#define RED_NO 3
 
 void do_autonomous_red_skyrise() {
 
@@ -551,12 +546,15 @@ void do_autonomous_red_skyrise() {
 	wait(100);
 }
 
-void do_autonomous_blue_skyrise() {
+void do_autonomous_blue_NO_skyrise() {
+	// TBD
+}
 
-	while (vexRT[Btn6U] == 0)
-	{
-		wait1Msec(50);
-	}
+void do_autonomous_red_NO_skyrise() {
+	// TBD
+}
+
+void do_autonomous_blue_skyrise() {
 
 	resetMotorEncoder(backLeft);
 	resetMotorEncoder(backRight);
@@ -648,16 +646,6 @@ void do_autonomous_blue_skyrise() {
 	wait(100);
 }
 
-void do_autonomous(int autoType) {
-	if (autoType == RED_SKYRISE)
-	{
-		do_autonomous_red_skyrise();
-	}
-	else if (autoType == BLUE_SKYRISE)
-	{
-		do_autonomous_blue_skyrise();
-	}
-}
 
 void pid_init() {
 	// Initialize PID parameters for all 3 PID tasks (left lift, right lift, four-bar lift)
@@ -724,6 +712,108 @@ void pid_init() {
 	pid[FOUR_BAR_PID_INDEX].min_height = 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+////
+//// LCD Button Selection Code from http://www.vexforum.com/showthread.php?t=77853
+//// courtesy user jpearman
+////
+////////////////////////////////////////////////////////////////////////////////
+
+// global hold the auton selection
+static int MyAutonomous = 0;
+
+/*-----------------------------------------------------------------------------*/
+/*  Display autonomous selection                                               */
+/*-----------------------------------------------------------------------------*/
+
+// max number of auton choices
+#define MAX_CHOICE  4
+
+void
+LcdAutonomousSet( int value, bool select = false )
+{
+    // Cleat the lcd
+    clearLCDLine(0);
+    clearLCDLine(1);
+
+    // Display the selection arrows
+    displayLCDString(1,  0, l_arr_str);
+    displayLCDString(1, 13, r_arr_str);
+
+    // Save autonomous mode for later if selected
+    if(select)
+        MyAutonomous = value;
+
+    // If this choice is selected then display ACTIVE
+    if( MyAutonomous == value )
+        displayLCDString(1, 5, "ACTIVE");
+    else
+        displayLCDString(1, 5, "select");
+
+
+
+
+    // Show the autonomous names
+    switch(value) {
+        case    0:
+            displayLCDString(0, 0, "RED Skyrise");
+            break;
+        case    1:
+            displayLCDString(0, 0, "RED NO");
+            break;
+        case    2:
+            displayLCDString(0, 0, "BLUE Skyrise");
+            break;
+        case    3:
+            displayLCDString(0, 0, "BLUE NO");
+            break;
+        default:
+            displayLCDString(0, 0, "Unknown");
+            break;
+        }
+}
+
+/*-----------------------------------------------------------------------------*/
+/*  Rotate through a number of choices and use center button to select         */
+/*-----------------------------------------------------------------------------*/
+
+void
+LcdAutonomousSelection()
+{
+    TControllerButtons  button;
+    int  choice = 0;
+
+    // Turn on backlight
+    bLCDBacklight = true;
+
+    // diaplay default choice
+    LcdAutonomousSet(0);
+
+    while( bIfiRobotDisabled )
+        {
+        // this function blocks until button is pressed
+        button = getLcdButtons();
+
+        // Display and select the autonomous routine
+        if( ( button == kButtonLeft ) || ( button == kButtonRight ) ) {
+            // previous choice
+            if( button == kButtonLeft )
+                if( --choice < 0 ) choice = MAX_CHOICE;
+            // next choice
+            if( button == kButtonRight )
+                if( ++choice > MAX_CHOICE ) choice = 0;
+            LcdAutonomousSet(choice);
+            }
+
+        // Select this choice
+        if( button == kButtonCenter )
+            LcdAutonomousSet(choice, true );
+
+        // Don't hog the cpu !
+        wait1Msec(10);
+        }
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -738,7 +828,7 @@ void pre_auton()
 {
   // Set bStopTasksBetweenModes to false if you want to keep user created tasks running between
   // Autonomous and Tele-Op modes. You will need to manage all user created tasks if set to false.
-  bStopTasksBetweenModes = false;
+  bStopTasksBetweenModes = true;
 
 	// All activities that occur before the competition starts
 	// Example: clearing encoders, setting servo positions, ...
@@ -751,6 +841,9 @@ void pre_auton()
 
 	// start the PID task
 	startTask( PidController );
+
+	// Ask for user input on LCD as to which Autonomous to run
+	LcdAutonomousSelection();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -761,10 +854,30 @@ void pre_auton()
 // You must modify the code to add your own robot specific commands here.
 //
 /////////////////////////////////////////////////////////////////////////////////////////
+#define RED_SKYRISE 	0
+#define RED_NO 				1
+#define BLUE_SKYRISE 	2
+#define BLUE_NO 			3
+
 
 task autonomous()
 {
-	do_autonomous(RED_SKYRISE);
+	switch( MyAutonomous ) {
+        case    0:
+            do_autonomous_red_skyrise();
+            break;
+        case    1:
+            do_autonomous_red_NO_skyrise();
+            break;
+    		case    2:
+            do_autonomous_blue_skyrise();
+            break;
+        case    3:
+            do_autonomous_blue_NO_skyrise();
+            break;
+        default:
+            break;
+   }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -779,6 +892,18 @@ task autonomous()
 task usercontrol()
 {
 	int debug_delay_counter = 0;
+
+	// NOTE: The following three initialization routines are run again because we have elected to
+	// set bStopTasksBetweenModes = true in pre_auton
+
+	// Initialize PID parameters
+	pid_init();
+
+	// Initialize Lift
+	init_lift();
+
+	// start the PID task
+	startTask( PidController );
 
 
 	// use joystick to modify the requested position
@@ -918,6 +1043,6 @@ task usercontrol()
 		motor[backLeft] =  Y1 + X2 - X1;
 
 
-		wait1Msec(50);
+		wait1Msec(USER_CONTROL_LOOP_TIME);
 	}
 }
