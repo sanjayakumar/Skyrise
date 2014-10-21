@@ -289,8 +289,6 @@ void init_lift(){
 	// Move arm down
 	motor[pid[LEFT_LIFT_PID_INDEX].pid_motor_index] = -64*pid[LEFT_LIFT_PID_INDEX].pid_motor_scale;
 	motor[pid[RIGHT_LIFT_PID_INDEX].pid_motor_index] = -50*pid[RIGHT_LIFT_PID_INDEX].pid_motor_scale;
-
-
 	wait1Msec(300);
 	motor[pid[FOUR_BAR_PID_INDEX].pid_motor_index] = -64*pid[FOUR_BAR_PID_INDEX].pid_motor_scale;
 
@@ -301,7 +299,7 @@ void init_lift(){
 
 
 	// Wait after lift moves down to give it time to settle down
-	waitInMilliseconds(500);
+	waitInMilliseconds(200);
 
 	for(i = 0; i < NUM_PID_CONTROLS; i++) {
 		pid[i].pidRequestedValue = 0;
@@ -339,6 +337,45 @@ int power_ramp(int current, int target) {
 long ime1, ime2;
 long initial_ime1, initial_ime2;
 
+// DEBUG start
+#define IME_HISTORY_LENGTH 10
+int ime1_index = 0;
+int ime2_index = 0;
+int ime1_history[IME_HISTORY_LENGTH];
+int ime2_history[IME_HISTORY_LENGTH];
+
+#define MAX_DELTA 200
+
+void check_ime() {
+	int i;
+
+	ime1_history[ime1_index++] = ime1;
+	ime2_history[ime2_index++] = ime2;
+
+	ime1_index = (ime1_index != IME_HISTORY_LENGTH) ? ime1_index : 0;
+	ime2_index = (ime2_index != IME_HISTORY_LENGTH) ? ime2_index : 0;
+
+	if (abs(ime1-ime1_history[ime1_index]) < MAX_DELTA) {
+		return;
+	}
+
+	if (abs(ime2-ime2_history[ime2_index]) < MAX_DELTA) {
+		return;
+	}
+
+	writeDebugStreamLine("ime1_index: %d ime2_index %d", ime1_index, ime2_index);
+	for (i=0; i<IME_HISTORY_LENGTH; i++) {
+		writeDebugStreamLine("%d", ime1_history[i]);
+	}
+
+	writeDebugStreamLine(" ");
+	for (i=0; i<IME_HISTORY_LENGTH; i++) {
+		writeDebugStreamLine("%d", ime2_history[i]);
+	}
+
+}
+// DEBUG end
+
 
 void move(char dir, int dist, int power)
 {
@@ -354,6 +391,11 @@ void move(char dir, int dist, int power)
 	// Get IME values before the start of the movement
 	ime1 = initial_ime1 = nMotorEncoder(backRight);
 	ime2 = initial_ime2 = nMotorEncoder(backLeft);
+
+
+	// Debug Start
+	check_ime();
+	// Debug End
 
 	// Set target values of IME's
 
@@ -418,6 +460,9 @@ void move(char dir, int dist, int power)
 
 		ime1 = nMotorEncoder(backRight);
 		ime2 = nMotorEncoder(backLeft);
+		// Debug Start
+		check_ime();
+		// Debug End
 		if ((abs(ime1 - initial_ime1) + abs(ime2 - initial_ime2))/2 > abs(dist))
 		{
 			//	writeDebugStreamLine("ime1Delta: %f ime2Delta: %f", abs(ime1 - initial_ime1), abs(ime2 - initial_ime2));
@@ -434,6 +479,9 @@ void move(char dir, int dist, int power)
 		ime1 = nMotorEncoder(backRight);
 		ime2 = nMotorEncoder(backLeft);
 		// writeDebugStreamLine("ime1Delta: %f ime2Delta: %f", abs(ime1 - initial_ime1), abs(ime2 - initial_ime2));
+		// Debug Start
+		check_ime();
+		// Debug End
 	} while ( (abs(ime1 - initial_ime1) + abs(ime2 - initial_ime2))/2 < abs(dist));
 
 	// Stop motors
@@ -456,30 +504,26 @@ void move_slide_to_position(int position) {
 
 void do_autonomous_red_skyrise() {
 
-	resetMotorEncoder(backLeft);
-	resetMotorEncoder(backRight);
-
 	// Getting the Skyrise section
-	int wait_time_between_steps = 1000;
+	int wait_time_between_steps = 50;
 
-	// Step 1: Move Back
+  // Step 1: Move slide up
 	writeDebugStreamLine("Step 1");
-	move('b', 210, 60);
-	wait1Msec(wait_time_between_steps);
-
-	// Step 2: Move slide up
-	writeDebugStreamLine("Step 2");
 	move_slide_to_position(229);
+
+	// Step2: Move Back
+	writeDebugStreamLine("Step 2");
+	move('b', 210, 60);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 3: Move Left to face Skyrise section autoloader
 	writeDebugStreamLine("Step 3");
-	move('l', 955, 100);
+	move('l', 700, 100);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 4: Move forward to grip Skyrise section
 	writeDebugStreamLine("Step 4");
-	move('f', 240, 60);
+	move('f', 245, 60);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 5: Raise the Arm
@@ -497,20 +541,22 @@ void do_autonomous_red_skyrise() {
 	move('r', 965, 100);
 	wait1Msec(wait_time_between_steps);
 
+	move_slide_to_position(250);
+
 	// Step 8: Counter-clockwise turn (we call it 'a'nticlockwise!!
 	writeDebugStreamLine("Step 8");
-	turn('a', 2085, 127);
+	turn('a', 2150, 127);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 9: Move forward
 	writeDebugStreamLine("Step 9");
-	move('f', 590, 60);
+	move('f', 545, 60);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 10: Move slide down to deliver Skyrise section
 	writeDebugStreamLine("Step 10");
 	move_slide_to_position(0);
-	wait1Msec(1000);
+	wait1Msec(500);
 
 	// Step 11: Back up
 	writeDebugStreamLine("Step 11");
@@ -519,8 +565,7 @@ void do_autonomous_red_skyrise() {
 
 	// Step 12: Raise Cube (slide)
 	writeDebugStreamLine("Step 12");
-	move_slide_to_position(500);
-	wait1Msec(wait_time_between_steps);
+	move_slide_to_position(450);
 
 	// Step 13: Turn 180 Degrees
 	writeDebugStreamLine("Step 13");
@@ -535,7 +580,7 @@ void do_autonomous_red_skyrise() {
 	// Step 15: Deliver cube!
 	writeDebugStreamLine("Step 15");
 	move_slide_to_position(0);
-	wait1Msec(650);
+	wait1Msec(500);
 
 	// Step 16: Move forward (almost done!)
 	writeDebugStreamLine("Step 16");
@@ -555,9 +600,6 @@ void do_autonomous_red_NO_skyrise() {
 }
 
 void do_autonomous_blue_skyrise() {
-
-	resetMotorEncoder(backLeft);
-	resetMotorEncoder(backRight);
 
 	// Getting the Skyrise section
 	int wait_time_between_steps = 1000;
@@ -837,7 +879,7 @@ void pre_auton()
 	pid_init();
 
 	// Initialize Lift
-	init_lift();
+	// MOVED TO START OF auton init_lift();
 
 	// start the PID task
 	startTask( PidController );
@@ -862,6 +904,11 @@ void pre_auton()
 
 task autonomous()
 {
+	// Reset Drive IMEs
+  init_lift();
+	resetMotorEncoder(backLeft);
+	resetMotorEncoder(backRight);
+
 	switch( MyAutonomous ) {
         case    0:
             do_autonomous_red_skyrise();
