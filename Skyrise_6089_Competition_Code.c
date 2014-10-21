@@ -538,30 +538,34 @@ void do_autonomous_red_skyrise() {
 
 	// Step 7: Move Right
 	writeDebugStreamLine("Step 7");
-	move('r', 965, 100);
+	move('r', 850, 100);
 	wait1Msec(wait_time_between_steps);
 
 	move_slide_to_position(250);
 
-	// Step 8: Counter-clockwise turn (we call it 'a'nticlockwise!!
+	// Step 8:
 	writeDebugStreamLine("Step 8");
-	turn('a', 2150, 127);
+	move('b', 1300, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 9: Move forward
+
+	// Step 9:
 	writeDebugStreamLine("Step 9");
-	move('f', 545, 60);
+	turn('a', 820, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 10: Move slide down to deliver Skyrise section
+
+	// Step 10:
 	writeDebugStreamLine("Step 10");
+	move('f', 290, 127);
+	wait1Msec(wait_time_between_steps);
+
+
+	// Step 11:
+	writeDebugStreamLine("Step 11");
 	move_slide_to_position(0);
 	wait1Msec(500);
-
-	// Step 11: Back up
-	writeDebugStreamLine("Step 11");
-	move('b', 325, 60);
-	wait1Msec(wait_time_between_steps);
+  return;
 
 	// Step 12: Raise Cube (slide)
 	writeDebugStreamLine("Step 12");
@@ -574,7 +578,7 @@ void do_autonomous_red_skyrise() {
 
 	// Step 14: Move back
 	writeDebugStreamLine("Step 14");
-	move('b', 320, 60);
+	move('b', 350, 60);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 15: Deliver cube!
