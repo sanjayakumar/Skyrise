@@ -27,6 +27,11 @@
 // Include the lcd button get utility function
 #include "getlcdbuttons.c"
 
+// DEBUG defines. Enable ONLY for testing
+//#define DEBUG_PID
+//#define DEBUG_IME
+
+
 
 // Parameter DEFINEs
 #define SLIDE_MAX_HEIGHT		  		1130
@@ -34,7 +39,7 @@
 #define LEFT_SLIDE_SENSOR_INDEX		leftEncoder
 #define RIGHT_SLIDE_SENSOR_INDEX	rightEncoder
 #define SLIDE_SENSOR_SCALE    		1
-#define FOUR_BAR_SENSOR_SCALE 		1
+#define FOUR_BAR_SENSOR_SCALE 		-1
 #define LEFT_SLIDE_MOTOR_INDEX		leftSlideMotor
 #define RIGHT_SLIDE_MOTOR_INDEX		rightSlideMotor
 #define FOUR_BAR_SENSOR_INDEX 		fourBarEncoder
@@ -42,7 +47,7 @@
 #define SLIDE_MOTOR_SCALE     		1
 #define FOUR_BAR_MOTOR_SCALE 			-1
 #define SLIDE_MOTOR_DRIVE_MAX			127.0
-#define SLIDE_MOTOR_DRIVE_MIN			(-70.0)
+#define SLIDE_MOTOR_DRIVE_MIN			(-75.0)
 #define FOUR_BAR_MOTOR_DRIVE_MAX	127.0
 #define FOUR_BAR_MOTOR_DRIVE_MIN 	(-80.0)
 #define MAX_SLIDE_MOTOR_POWER_DELTA			30
@@ -58,7 +63,7 @@
 // This is the preset height for picking up the skyrise section at the highest point (to deliver the first one)
 #define HEIGHT_FOR_FIRST_SKYRISE_SECTION 229
 
-#define USER_CONTROL_LOOP_TIME	25 // Milliseconds
+#define USER_CONTROL_LOOP_TIME	50 // Milliseconds
 #define PID_LOOP_TIME						25
 
 // Structure to store PID parameters -- note we have 3; one for each slide and one for the Arm
@@ -106,9 +111,14 @@ float  fourBar_Kp = 1.5;
 float  fourBar_Ki = 0.00;
 float  fourBar_Kd = 1;
 
-// DEBUG START
+#ifdef DEBUG_PID
 short start_debug_stream = false;
-// DEBUG END
+int debug_delay_counter = 0;
+#endif // DEBUG PID
+
+#ifdef DEBUG_IME
+float max_mismatch = 0.0;
+#endif
 
 /*-----------------------------------------------------------------------------*/
 /*                                                                             */
@@ -123,7 +133,7 @@ task PidController()
 	float  pidError;
 	float  pidDerivative;
 	float  pidDrive;
-	float max_mismatch = 0.0;
+
 
 	int i, j;
 
@@ -201,6 +211,7 @@ task PidController()
 			// if (i == 0 /*&& abs(speed) > .1 && (pidSensorCurrentValue > 1050 || pidSensorCurrentValue < 10)*/)
 			// writeDebugStreamLine("Speed: %f time: %f sensor %d", pid[0].previous_speed*1000.0/6.0, time1[T1], pidSensorCurrentValue);
 
+#ifdef DEBUG_PID
 			pid[i].pid_sensor_previous_value = pidSensorCurrentValue;
 			if (i==0 && start_debug_stream) {
 				float sensor_mismatch = pid[0].pid_sensor_previous_value - pid[1].pid_sensor_previous_value;
@@ -209,7 +220,7 @@ task PidController()
 				// writeDebugStreamLine("pidDrive: %f pidError: %f max_mismatch: %f PID: %f %f %f", pidDrive, pidError, max_mismatch, pid[i].Kp * pidError, pid[i].Ki * pid[i].errorIntegral, pid[i].Kd * pidDerivative);
 				writeDebugStreamLine("pidDrive: %f pidError: %f max_mismatch: %f sensor_mismatch %f ", pidDrive, pidError, max_mismatch, sensor_mismatch);
 			}
-			// DEBUG END
+#endif // DEBUG_PID
 
 		}
 
@@ -337,7 +348,8 @@ int power_ramp(int current, int target) {
 long ime1, ime2;
 long initial_ime1, initial_ime2;
 
-// DEBUG start
+#ifdef DEBUG_IME
+
 #define IME_HISTORY_LENGTH 10
 int ime1_index = 0;
 int ime2_index = 0;
@@ -374,7 +386,7 @@ void check_ime() {
 	}
 
 }
-// DEBUG end
+#endif DEBUG_IME
 
 
 void move(char dir, int dist, int power)
@@ -393,9 +405,9 @@ void move(char dir, int dist, int power)
 	ime2 = initial_ime2 = nMotorEncoder(backLeft);
 
 
-	// Debug Start
+#ifdef DEBUG_IME
 	check_ime();
-	// Debug End
+#endif // DEBUG_IME
 
 	// Set target values of IME's
 
@@ -460,9 +472,10 @@ void move(char dir, int dist, int power)
 
 		ime1 = nMotorEncoder(backRight);
 		ime2 = nMotorEncoder(backLeft);
-		// Debug Start
+#ifdef DEBUG_IME
 		check_ime();
-		// Debug End
+#endif // DEBUG_IME
+
 		if ((abs(ime1 - initial_ime1) + abs(ime2 - initial_ime2))/2 > abs(dist))
 		{
 			//	writeDebugStreamLine("ime1Delta: %f ime2Delta: %f", abs(ime1 - initial_ime1), abs(ime2 - initial_ime2));
@@ -479,9 +492,9 @@ void move(char dir, int dist, int power)
 		ime1 = nMotorEncoder(backRight);
 		ime2 = nMotorEncoder(backLeft);
 		// writeDebugStreamLine("ime1Delta: %f ime2Delta: %f", abs(ime1 - initial_ime1), abs(ime2 - initial_ime2));
-		// Debug Start
+#ifdef DEBUG_IME
 		check_ime();
-		// Debug End
+#endif // DEBUG_IME
 	} while ( (abs(ime1 - initial_ime1) + abs(ime2 - initial_ime2))/2 < abs(dist));
 
 	// Stop motors
@@ -508,95 +521,85 @@ void do_autonomous_red_skyrise() {
 	int wait_time_between_steps = 10;
 
   // Step 1: Move slide up
-	writeDebugStreamLine("Step 1");
 	move_slide_to_position(229);
 
-	// Step2: Move Back
-	writeDebugStreamLine("Step 2");
+	// Step 2: Move Back
 	move('b', 210, 60);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 3: Move Left to face Skyrise section autoloader
-	writeDebugStreamLine("Step 3");
-	move('l', 700, 100);
+	move('l', 710, 100);
 	wait1Msec(50);
 
 	// Step 4: Move forward to grip Skyrise section
-	writeDebugStreamLine("Step 4");
 	move('f', 240, 60);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 5: Raise the Arm
-	writeDebugStreamLine("Step 5");
-	move_slide_to_position(500);
-	wait1Msec(900);
+	move_slide_to_position(550);
+	wait1Msec(900); // This wait is longer because the slide functions are asynchronous
+	                // In other words -- they don't complete the action before returning
 
-	// Step 6: Move Back
-	writeDebugStreamLine("Step 6");
+	// Step 6a: Move Back
 	move('b', 140, 127);
 	wait1Msec(wait_time_between_steps);
 
-	move_slide_to_position(75);
+	// Step 6b: Partially Lower the Slide
+	move_slide_to_position(75); // notice no waiting
+
 	// Step 7: Move Right
-	writeDebugStreamLine("Step 7");
 	move('r', 850, 127);
 	wait1Msec(wait_time_between_steps);
 
-
-
-	// Step 8:
-	writeDebugStreamLine("Step 8");
+	// Step 8: Move Back
 	move('b', 1300, 127);
 	wait1Msec(wait_time_between_steps);
 
 
-	writeDebugStreamLine("Step 9");
+	// Step 9a: Turn towards Skyrise deliver base
 	turn('a', 820, 127);
 	wait1Msec(wait_time_between_steps);
 
+	// Step 9b: Need to lower arm to move back cube out of the way!
 	move_slide_to_position(250);
 
 
-	// Step 10:
-	writeDebugStreamLine("Step 10");
+	// Step 10: Move forward to be on top of base
 	move('f', 278, 127);
 	wait1Msec(wait_time_between_steps);
 
-
-	// Step 11:
-	writeDebugStreamLine("Step 11");
+	// Step 11: Lower arm to deliver Skyrise section
 	move_slide_to_position(0);
-	wait1Msec(500);
+	wait1Msec(500); // Notice: hard-coded wait time of 1/2 second to let robot complete planting the Skyrise section
 
-
-	// Step 12:
-	writeDebugStreamLine("Step 12");
+	// Step 12: Backup
 	move('b', 290, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 13:
-	writeDebugStreamLine("Step 13");
+	// Step 13: Turn back to original angle
 	turn('c', 820, 127);
 	wait1Msec(wait_time_between_steps);
 
+	//Step 14a: Raise Cube to prepare for delivery
 	move_slide_to_position(385);
 
-	// Step 14:
-	writeDebugStreamLine("Step 14");
+	// Step 14b: Move forward
 	move('f', 1100, 127);
 	wait1Msec(wait_time_between_steps);
 
-	writeDebugStreamLine("Step 15");
+	// Step 15: Turn clockwise so back towards Skyrise section
 	turn('c', 820, 127);
 	wait1Msec(wait_time_between_steps);
 
-	writeDebugStreamLine("Step 15");
+	// Step 16: Move backwards so cube over skyrise
 	move('b',245, 127);
 	wait1Msec(wait_time_between_steps);
 
+	// Step 17: Lower Cube on to skyrise
 	move_slide_to_position(0);
-	wait1Msec(500);
+	wait1Msec(500); // Again a hardcoded wait of 1/2 second
 
+	// Step 18: Move forward -- hopefully Cube drops on Skyrise and you're home free!
 	move('f', 300, 127);
 
 }
@@ -631,7 +634,7 @@ void do_autonomous_blue_skyrise() {
 
 	// Step 4: Move forward to grip Skyrise section
 	writeDebugStreamLine("Step 4");
-	move('f', 260, 60);
+	move('f', 260, 127);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 5: Raise the Arm
@@ -889,7 +892,7 @@ void pre_auton()
 	pid_init();
 
 	// Initialize Lift
-	// MOVED TO START OF auton init_lift();
+	init_lift();
 
 	// start the PID task
 	startTask( PidController );
@@ -914,8 +917,8 @@ void pre_auton()
 
 task autonomous()
 {
+	init_lift();
 	// Reset Drive IMEs
-  init_lift();
 	resetMotorEncoder(backLeft);
 	resetMotorEncoder(backRight);
 
@@ -948,7 +951,7 @@ task autonomous()
 
 task usercontrol()
 {
-	int debug_delay_counter = 0;
+
 
 	// NOTE: The following three initialization routines are run again because we have elected to
 	// set bStopTasksBetweenModes = true in pre_auton
@@ -957,7 +960,7 @@ task usercontrol()
 	pid_init();
 
 	// Initialize Lift
-	init_lift();
+	// Moved to start of actual autonomous init_lift();
 
 	// start the PID task
 	startTask( PidController );
@@ -1010,22 +1013,19 @@ task usercontrol()
 					pidRequestedValue = pid[LEFT_LIFT_PID_INDEX].min_height;
 				}
 
-				// DEBUG START
-
+#ifdef DEBUG_PID
 				start_debug_stream = true;
 				debug_delay_counter = 0;
-				// DEBUG END
 
 				} else {
-				// DEUBUG START
-				if (++debug_delay_counter > 20)
-					start_debug_stream = false;
+					if (++debug_delay_counter > 20)
+						start_debug_stream = false;
 
 				//					if (pid[0].previous_speed > 0.01)
 
 
 				//					DebugStreamLine("speed: %f", pid[0].previous_speed*1000.0/60.0);
-				// DEBUG END
+#endif DEBUG_PID
 			}
 
 			pid[LEFT_LIFT_PID_INDEX].pidRequestedValue = pidRequestedValue;
