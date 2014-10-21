@@ -289,7 +289,7 @@ void init_lift(){
 	// Move arm down
 	motor[pid[LEFT_LIFT_PID_INDEX].pid_motor_index] = -64*pid[LEFT_LIFT_PID_INDEX].pid_motor_scale;
 	motor[pid[RIGHT_LIFT_PID_INDEX].pid_motor_index] = -50*pid[RIGHT_LIFT_PID_INDEX].pid_motor_scale;
-	wait1Msec(300);
+	wait1Msec(250);
 	motor[pid[FOUR_BAR_PID_INDEX].pid_motor_index] = -64*pid[FOUR_BAR_PID_INDEX].pid_motor_scale;
 
 	wait1Msec(200);
@@ -505,7 +505,7 @@ void move_slide_to_position(int position) {
 void do_autonomous_red_skyrise() {
 
 	// Getting the Skyrise section
-	int wait_time_between_steps = 50;
+	int wait_time_between_steps = 10;
 
   // Step 1: Move slide up
 	writeDebugStreamLine("Step 1");
@@ -519,11 +519,11 @@ void do_autonomous_red_skyrise() {
 	// Step 3: Move Left to face Skyrise section autoloader
 	writeDebugStreamLine("Step 3");
 	move('l', 700, 100);
-	wait1Msec(wait_time_between_steps);
+	wait1Msec(50);
 
 	// Step 4: Move forward to grip Skyrise section
 	writeDebugStreamLine("Step 4");
-	move('f', 245, 60);
+	move('f', 240, 60);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 5: Raise the Arm
@@ -533,15 +533,16 @@ void do_autonomous_red_skyrise() {
 
 	// Step 6: Move Back
 	writeDebugStreamLine("Step 6");
-	move('b', 140, 60);
+	move('b', 140, 127);
 	wait1Msec(wait_time_between_steps);
 
+	move_slide_to_position(75);
 	// Step 7: Move Right
 	writeDebugStreamLine("Step 7");
-	move('r', 850, 100);
+	move('r', 850, 127);
 	wait1Msec(wait_time_between_steps);
 
-	move_slide_to_position(250);
+
 
 	// Step 8:
 	writeDebugStreamLine("Step 8");
@@ -549,15 +550,16 @@ void do_autonomous_red_skyrise() {
 	wait1Msec(wait_time_between_steps);
 
 
-	// Step 9:
 	writeDebugStreamLine("Step 9");
 	turn('a', 820, 127);
 	wait1Msec(wait_time_between_steps);
 
+	move_slide_to_position(250);
+
 
 	// Step 10:
 	writeDebugStreamLine("Step 10");
-	move('f', 290, 127);
+	move('f', 278, 127);
 	wait1Msec(wait_time_between_steps);
 
 
@@ -565,34 +567,38 @@ void do_autonomous_red_skyrise() {
 	writeDebugStreamLine("Step 11");
 	move_slide_to_position(0);
 	wait1Msec(500);
-  return;
 
-	// Step 12: Raise Cube (slide)
+
+	// Step 12:
 	writeDebugStreamLine("Step 12");
-	move_slide_to_position(450);
+	move('b', 290, 127);
+	wait1Msec(wait_time_between_steps);
 
-	// Step 13: Turn 180 Degrees
+	// Step 13:
 	writeDebugStreamLine("Step 13");
-	turn('c', 2940, 127);
+	turn('c', 820, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 14: Move back
+	move_slide_to_position(385);
+
+	// Step 14:
 	writeDebugStreamLine("Step 14");
-	move('b', 350, 60);
+	move('f', 1100, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 15: Deliver cube!
 	writeDebugStreamLine("Step 15");
+	turn('c', 820, 127);
+	wait1Msec(wait_time_between_steps);
+
+	writeDebugStreamLine("Step 15");
+	move('b',245, 127);
+	wait1Msec(wait_time_between_steps);
+
 	move_slide_to_position(0);
 	wait1Msec(500);
 
-	// Step 16: Move forward (almost done!)
-	writeDebugStreamLine("Step 16");
-	move('f', 295, 60);
-	wait1Msec(wait_time_between_steps);
+	move('f', 300, 127);
 
-	// wait (remove later)
-	wait(100);
 }
 
 void do_autonomous_blue_NO_skyrise() {
