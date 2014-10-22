@@ -410,7 +410,7 @@ void move(char dir, int dist, int power)
 #endif // DEBUG_IME
 
 	// Set target values of IME's
-
+float temp;
 	switch(dir){
 	case 'f':
 		Y1 = power;
@@ -430,6 +430,17 @@ void move(char dir, int dist, int power)
 	case 'a':
 		X2 = -power;
 		break;
+	case 'z': // diagonal back left
+		X1 = -power;
+		temp = -power*100/127;
+		Y1 = temp;
+		writeDebugStreamLine("X1: %d", X1);
+		writeDebugStreamLine("X1: %d", Y1);
+		break;
+	case 'q': // diagonal back right
+		X1 = power;
+		temp = -power*100/127;
+		Y1 = temp;
 	}
 
 #define FR 0
@@ -443,10 +454,11 @@ void move(char dir, int dist, int power)
 	int i;
 
 
-	target_power[FR] = Y1 - X1 - X2;
-	target_power[BR] = Y1 + X1 - X2;
-	target_power[FL] = Y1 + X1 + X2;
-	target_power[BL] = Y1 - X1 + X2;
+	target_power[FR] = Y1 - X2 - X1;
+	target_power[BR] = Y1 - X2 + X1;
+	target_power[FL] = Y1 + X2 + X1;
+	target_power[BL] = Y1 + X2 - X1;
+
 
 	motor_index[FR] = frontRight;
 	motor_index[BR] = backRight;
@@ -514,6 +526,11 @@ void move_slide_to_position(int position) {
 	pid[RIGHT_LIFT_PID_INDEX].pidRequestedValue = position;
 }
 
+// Note this function can return before slide reaches position (it is asynchronous)
+void move_arm_to_position(int position) {
+	pid[FOUR_BAR_PID_INDEX].pidRequestedValue = position;
+}
+
 
 void do_autonomous_red_skyrise() {
 
@@ -524,7 +541,7 @@ void do_autonomous_red_skyrise() {
 	move_slide_to_position(229);
 
 	// Step 2: Move Back
-	move('b', 210, 60);
+	move('b', 230, 60);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 3: Move Left to face Skyrise section autoloader
@@ -532,7 +549,7 @@ void do_autonomous_red_skyrise() {
 	wait1Msec(50);
 
 	// Step 4: Move forward to grip Skyrise section
-	move('f', 240, 60);
+	move('f', 260, 55);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 5: Raise the Arm
@@ -605,100 +622,134 @@ void do_autonomous_red_skyrise() {
 }
 
 void do_autonomous_blue_NO_skyrise() {
-	// TBD
+	move_slide_to_position(750);
+	 move('b', 150, 127);
+	 move('r', 1200, 127);
+	 move_arm_to_position(695);
+	 move('r', 1550, 127);
+	 wait1Msec(300);
+	 move('f', 385, 127);
+	 wait1Msec(500);
+	 move_slide_to_position(350);
+	 wait1Msec(1000);
+	 move('b', 850, 127);
+	 move_slide_to_position(0);
+	 move_arm_to_position(0);
 }
 
 void do_autonomous_red_NO_skyrise() {
-	// TBD
+	 move_slide_to_position(750);
+	 move('b', 150, 127);
+	 move('l', 1200, 127);
+	 move_arm_to_position(695);
+	 move('l', 1600, 127);
+	 wait1Msec(300);
+	 move('f', 180, 127);
+	 wait1Msec(500);
+	 move_slide_to_position(350);
+	 wait1Msec(2000);
+	 move('b', 400, 127);
+	 move('b', 850, 127);
+	 move_slide_to_position(0);
+	 move_arm_to_position(0);
 }
+///////////////////////////////
+//
+// BLUE SKYRISE AUTONOMOUS
+//
+///////////////////////////////
 
 void do_autonomous_blue_skyrise() {
 
 	// Getting the Skyrise section
-	int wait_time_between_steps = 1000;
+	int wait_time_between_steps = 10;
 
-	// Step 1: Move Back
-	writeDebugStreamLine("Step 1");
-	move('b', 160, 60);
-	wait1Msec(wait_time_between_steps);
-
-	// Step 2: Move slide up
-	writeDebugStreamLine("Step 2");
+  // Step 1: Move slide up
 	move_slide_to_position(229);
+
+	// Step 2: Move Back
+	move('b', 190, 60);
 	wait1Msec(wait_time_between_steps);
+
 
 	// Step 3: Move Right to face Skyrise section autoloader
-	writeDebugStreamLine("Step 3");
-	move('r', 900, 100);
-	wait1Msec(wait_time_between_steps);
+	move('r', 710,127);
+	wait1Msec(50);
 
 	// Step 4: Move forward to grip Skyrise section
-	writeDebugStreamLine("Step 4");
-	move('f', 260, 127);
-	wait1Msec(wait_time_between_steps);
+	move('f', 260, 100);
+	wait1Msec(200);
 
 	// Step 5: Raise the Arm
-	writeDebugStreamLine("Step 5");
-	move_slide_to_position(500);
-	wait1Msec(900);
+	move_slide_to_position(600);
+	wait1Msec(900); // This wait is longer because the slide functions are asynchronous
+	                // In other words -- they don't complete the action before returning
 
-	// Step 6: Move Back
-	writeDebugStreamLine("Step 6");
-	move('b', 165 , 60);
+	// Step 6a: Move Back
+	move('b', 140, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 7: Move Right
-	writeDebugStreamLine("Step 7");
-	move('l', 965, 100);
+	// Step 6b: Partially Lower the Slide
+	move_slide_to_position(75); // notice no waiting
+
+	// Step 7: Move Left
+	move('l', 850, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 8: Counter-clockwise turn (we call it 'a'nticlockwise!!
-	writeDebugStreamLine("Step 8");
-	turn('c', 2085, 127);
+	// Step 8: Move Back
+	move('b', 1400, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 9: Move forward
-	writeDebugStreamLine("Step 9");
-	move('f', 590, 60);
+
+
+	// Step 9a: Turn towards Skyrise deliver base
+	turn('c', 835, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 10: Move slide down to deliver Skyrise section
-	writeDebugStreamLine("Step 10");
+
+	// Step 9b: Need to lower arm to move back cube out of the way!
+	move_slide_to_position(250);
+
+
+	// Step 10: Move forward to be on top of base
+	move('f', 240, 127);
+	wait1Msec(wait_time_between_steps);
+
+
+	// Step 11: Lower arm to deliver Skyrise section
 	move_slide_to_position(0);
-	wait1Msec(1000);
+	wait1Msec(500); // Notice: hard-coded wait time of 1/2 second to let robot complete planting the Skyrise section
 
-	// Step 11: Back up
-	writeDebugStreamLine("Step 11");
-	move('b', 325, 60);
+	// Step 12: Backup
+	move('b', 300, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 12: Raise Cube (slide)
-	writeDebugStreamLine("Step 12");
-	move_slide_to_position(500);
+	// Step 13: Turn back to original angle
+	turn('a', 820, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 13: Turn 180 Degrees
-	writeDebugStreamLine("Step 13");
-	turn('a', 2940, 127);
+	//Step 14a: Raise Cube to prepare for delivery
+	move_slide_to_position(385);
+
+	// Step 14b: Move forward
+	move('f', 1125, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 14: Move back
-	writeDebugStreamLine("Step 14");
-	move('b', 320, 60);
+
+	// Step 15: Turn counter-clockwise so back towards Skyrise section
+	turn('a', 820, 127);
 	wait1Msec(wait_time_between_steps);
 
-	// Step 15: Deliver cube!
-	writeDebugStreamLine("Step 15");
+	// Step 16: Move backwards so cube over skyrise
+	move('b',165, 127);
+	wait1Msec(wait_time_between_steps);
+
+	// Step 17: Lower Cube on to skyrise
 	move_slide_to_position(0);
-	wait1Msec(650);
+	wait1Msec(500); // Again a hardcoded wait of 1/2 second
 
-	// Step 16: Move forward (almost done!)
-	writeDebugStreamLine("Step 16");
-	move('f', 295, 60);
-	wait1Msec(wait_time_between_steps);
-
-	// wait (remove later)
-	wait(100);
+	// Step 18: Move forward -- hopefully Cube drops on Skyrise and you're home free!
+	move('f', 300, 127);
 }
 
 
