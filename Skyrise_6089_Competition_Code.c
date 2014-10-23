@@ -324,7 +324,7 @@ void init_lift(){
 
 
 	// Wait after lift moves down to give it time to settle down
-	waitInMilliseconds(200);
+	wait1Msec(200);
 
 	for(i = 0; i < NUM_PID_CONTROLS; i++) {
 		pid[i].pidRequestedValue = 0;
