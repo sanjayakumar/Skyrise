@@ -619,7 +619,7 @@ void do_autonomous_red_skyrise() {
 	wait1Msec(wait_time_between_steps);
 
 	// Step 15: Turn clockwise so back towards Skyrise section
-	turn('c', 820, 127);
+	turn('c', 830, 127);
 	wait1Msec(wait_time_between_steps);
 
 	// Step 16: Move backwards so cube over skyrise
