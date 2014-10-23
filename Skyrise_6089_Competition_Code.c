@@ -60,6 +60,7 @@
 #define LEFT_LIFT_PID_INDEX 			0
 #define RIGHT_LIFT_PID_INDEX 			1
 #define FOUR_BAR_PID_INDEX 				2
+
 // This is the preset height for picking up the skyrise section at the highest point (to deliver the first one)
 #define HEIGHT_FOR_FIRST_SKYRISE_SECTION 229
 
@@ -229,6 +230,10 @@ task PidController()
 	}
 }
 
+///////////
+// NOTE: the motor power in init_lift() and zero_reset_slide() and zero_reset_arm() MUST be the same.
+///////////
+
 task zero_reset_slide()
 {
 	// PIDs for both slides must already be inactive for both slides
@@ -254,6 +259,8 @@ task zero_reset_slide()
 	motor[pid[LEFT_LIFT_PID_INDEX].pid_motor_index] = 0;
 	motor[pid[RIGHT_LIFT_PID_INDEX].pid_motor_index] = 0;
 
+	wait1Msec(200); // Should be the SAME as init_lift()
+
 	// Set zero positions for each pid that is not active
 	SensorValue[pid[LEFT_LIFT_PID_INDEX].pid_sensor_index] = 0;
 	SensorValue[pid[RIGHT_LIFT_PID_INDEX].pid_sensor_index] = 0;
@@ -262,6 +269,10 @@ task zero_reset_slide()
 	pid[LEFT_LIFT_PID_INDEX].pid_active = true;
 	pid[RIGHT_LIFT_PID_INDEX].pid_active = true;
 }
+
+///////////
+// NOTE: the motor power in init_lift() and zero_reset_slide() and zero_reset_arm() MUST be the same.
+///////////
 
 task zero_reset_arm()
 {
@@ -284,6 +295,8 @@ task zero_reset_arm()
 	// Turn Motors Off
 	motor[pid[FOUR_BAR_PID_INDEX].pid_motor_index] = 0;
 
+	wait1Msec(200); // Should be the SAME as init_lift()
+
 	// Set zero positions for pid
 	SensorValue[pid[FOUR_BAR_PID_INDEX].pid_sensor_index] = 0;
 
@@ -291,17 +304,18 @@ task zero_reset_arm()
 	pid[FOUR_BAR_PID_INDEX].pid_active = true;
 }
 
-
-
+///////////
+// NOTE: the motor power in init_lift() and zero_reset_slide() and zero_reset_arm() MUST be the same.
+///////////
 void init_lift(){
 
 	int i;
 
 	// Move arm down
 	motor[pid[LEFT_LIFT_PID_INDEX].pid_motor_index] = -64*pid[LEFT_LIFT_PID_INDEX].pid_motor_scale;
-	motor[pid[RIGHT_LIFT_PID_INDEX].pid_motor_index] = -50*pid[RIGHT_LIFT_PID_INDEX].pid_motor_scale;
+	motor[pid[RIGHT_LIFT_PID_INDEX].pid_motor_index] = -64*pid[RIGHT_LIFT_PID_INDEX].pid_motor_scale;
 	wait1Msec(250);
-	motor[pid[FOUR_BAR_PID_INDEX].pid_motor_index] = -64*pid[FOUR_BAR_PID_INDEX].pid_motor_scale;
+	motor[pid[FOUR_BAR_PID_INDEX].pid_motor_index] = -25*pid[FOUR_BAR_PID_INDEX].pid_motor_scale;
 
 	wait1Msec(200);
 	motor[pid[LEFT_LIFT_PID_INDEX].pid_motor_index] = 0;
@@ -538,7 +552,7 @@ void do_autonomous_red_skyrise() {
 	int wait_time_between_steps = 10;
 
   // Step 1: Move slide up
-	move_slide_to_position(229);
+	move_slide_to_position(228);
 
 	// Step 2: Move Back
 	move('b', 230, 60);
@@ -665,7 +679,7 @@ void do_autonomous_blue_skyrise() {
 	int wait_time_between_steps = 10;
 
   // Step 1: Move slide up
-	move_slide_to_position(229);
+	move_slide_to_position(228);
 
 	// Step 2: Move Back
 	move('b', 190, 60);
@@ -675,6 +689,8 @@ void do_autonomous_blue_skyrise() {
 	// Step 3: Move Right to face Skyrise section autoloader
 	move('r', 710,127);
 	wait1Msec(50);
+
+
 
 	// Step 4: Move forward to grip Skyrise section
 	move('f', 260, 100);
@@ -688,6 +704,7 @@ void do_autonomous_blue_skyrise() {
 	// Step 6a: Move Back
 	move('b', 140, 127);
 	wait1Msec(wait_time_between_steps);
+
 
 	// Step 6b: Partially Lower the Slide
 	move_slide_to_position(75); // notice no waiting
@@ -703,7 +720,7 @@ void do_autonomous_blue_skyrise() {
 
 
 	// Step 9a: Turn towards Skyrise deliver base
-	turn('c', 835, 127);
+	turn('c', 815, 127);
 	wait1Msec(wait_time_between_steps);
 
 
