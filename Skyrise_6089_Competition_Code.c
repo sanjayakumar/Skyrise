@@ -131,6 +131,7 @@ float max_mismatch = 0.0;
 task PidController()
 {
 	float  pidSensorCurrentValue;
+
 	float  pidError;
 	float  pidDerivative;
 	float  pidDrive;
