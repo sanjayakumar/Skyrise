@@ -62,8 +62,11 @@
 #define RIGHT_LIFT_PID_INDEX 			1
 #define FOUR_BAR_PID_INDEX 				2
 
+#define SLOW_MODE_FACTOR					0.35
+
 // This is the preset height for picking up the skyrise section at the highest point (to deliver the first one)
-#define HEIGHT_FOR_FIRST_SKYRISE_SECTION 229
+#define SKYRISE_MIDDLE_INTAKE_HEIGHT 215
+#define SKYRISE_LOW_INTAKE_HEIGHT    139
 
 #define USER_CONTROL_LOOP_TIME	50 // Milliseconds
 #define PID_LOOP_TIME						25
@@ -380,8 +383,8 @@ void check_ime() {
 	ime1_history[ime1_index++] = ime1;
 	ime2_history[ime2_index++] = ime2;
 
-	ime1_index = (ime1_index != IME_HISTORY_LENGTH) ? ime1_index : 0;
-	ime2_index = (ime2_index != IME_HISTORY_LENGTH) ? ime2_index : 0;
+ime1_index = (ime1_index != IME_HISTORY_LENGTH) ? ime1_index : 0;
+ime2_index = (ime2_index != IME_HISTORY_LENGTH) ? ime2_index : 0;
 
 	if (abs(ime1-ime1_history[ime1_index]) < MAX_DELTA) {
 		return;
@@ -426,7 +429,7 @@ void move(char dir, int dist, int power)
 #endif // DEBUG_IME
 
 	// Set target values of IME's
-float temp;
+	float temp;
 	switch(dir){
 	case 'f':
 		Y1 = power;
@@ -553,7 +556,7 @@ void do_autonomous_red_skyrise() {
 	// Getting the Skyrise section
 	int wait_time_between_steps = 10;
 
-  // Step 1: Move slide up
+	// Step 1: Move slide up
 	move_slide_to_position(228);
 
 	// Step 2: Move Back
@@ -571,7 +574,7 @@ void do_autonomous_red_skyrise() {
 	// Step 5: Raise the Arm
 	move_slide_to_position(550);
 	wait1Msec(900); // This wait is longer because the slide functions are asynchronous
-	                // In other words -- they don't complete the action before returning
+	// In other words -- they don't complete the action before returning
 
 	// Step 6a: Move Back
 	move('b', 140, 127);
@@ -639,35 +642,35 @@ void do_autonomous_red_skyrise() {
 
 void do_autonomous_blue_NO_skyrise() {
 	move_slide_to_position(750);
-	 move('b', 150, 127);
-	 move('r', 1200, 127);
-	 move_arm_to_position(695);
-	 move('r', 1550, 127);
-	 wait1Msec(300);
-	 move('f', 385, 127);
-	 wait1Msec(500);
-	 move_slide_to_position(350);
-	 wait1Msec(1000);
-	 move('b', 850, 127);
-	 move_slide_to_position(0);
-	 move_arm_to_position(0);
+	move('b', 150, 127);
+	move('r', 1200, 127);
+	move_arm_to_position(695);
+	move('r', 1550, 127);
+	wait1Msec(300);
+	move('f', 385, 127);
+	wait1Msec(500);
+	move_slide_to_position(350);
+	wait1Msec(1000);
+	move('b', 850, 127);
+	move_slide_to_position(0);
+	move_arm_to_position(0);
 }
 
 void do_autonomous_red_NO_skyrise() {
-	 move_slide_to_position(750);
-	 move('b', 150, 127);
-	 move('l', 1200, 127);
-	 move_arm_to_position(695);
-	 move('l', 1600, 127);
-	 wait1Msec(300);
-	 move('f', 180, 127);
-	 wait1Msec(500);
-	 move_slide_to_position(350);
-	 wait1Msec(2000);
-	 move('b', 400, 127);
-	 move('b', 850, 127);
-	 move_slide_to_position(0);
-	 move_arm_to_position(0);
+	move_slide_to_position(750);
+	move('b', 150, 127);
+	move('l', 1200, 127);
+	move_arm_to_position(695);
+	move('l', 1600, 127);
+	wait1Msec(300);
+	move('f', 180, 127);
+	wait1Msec(500);
+	move_slide_to_position(350);
+	wait1Msec(2000);
+	move('b', 400, 127);
+	move('b', 850, 127);
+	move_slide_to_position(0);
+	move_arm_to_position(0);
 }
 ///////////////////////////////
 //
@@ -680,7 +683,7 @@ void do_autonomous_blue_skyrise() {
 	// Getting the Skyrise section
 	int wait_time_between_steps = 10;
 
-  // Step 1: Move slide up
+	// Step 1: Move slide up
 	move_slide_to_position(228);
 
 	// Step 2: Move Back
@@ -701,7 +704,7 @@ void do_autonomous_blue_skyrise() {
 	// Step 5: Raise the Arm
 	move_slide_to_position(600);
 	wait1Msec(900); // This wait is longer because the slide functions are asynchronous
-	                // In other words -- they don't complete the action before returning
+	// In other words -- they don't complete the action before returning
 
 	// Step 6a: Move Back
 	move('b', 140, 127);
@@ -856,45 +859,45 @@ static int MyAutonomous = 0;
 void
 LcdAutonomousSet( int value, bool select = false )
 {
-    // Cleat the lcd
-    clearLCDLine(0);
-    clearLCDLine(1);
+	// Cleat the lcd
+	clearLCDLine(0);
+	clearLCDLine(1);
 
-    // Display the selection arrows
-    displayLCDString(1,  0, l_arr_str);
-    displayLCDString(1, 13, r_arr_str);
+	// Display the selection arrows
+	displayLCDString(1,  0, l_arr_str);
+	displayLCDString(1, 13, r_arr_str);
 
-    // Save autonomous mode for later if selected
-    if(select)
-        MyAutonomous = value;
+	// Save autonomous mode for later if selected
+	if(select)
+		MyAutonomous = value;
 
-    // If this choice is selected then display ACTIVE
-    if( MyAutonomous == value )
-        displayLCDString(1, 5, "ACTIVE");
-    else
-        displayLCDString(1, 5, "select");
-
-
+	// If this choice is selected then display ACTIVE
+	if( MyAutonomous == value )
+		displayLCDString(1, 5, "ACTIVE");
+	else
+		displayLCDString(1, 5, "select");
 
 
-    // Show the autonomous names
-    switch(value) {
-        case    0:
-            displayLCDString(0, 0, "RED Skyrise");
-            break;
-        case    1:
-            displayLCDString(0, 0, "RED NO");
-            break;
-        case    2:
-            displayLCDString(0, 0, "BLUE Skyrise");
-            break;
-        case    3:
-            displayLCDString(0, 0, "BLUE NO");
-            break;
-        default:
-            displayLCDString(0, 0, "Unknown");
-            break;
-        }
+
+
+	// Show the autonomous names
+	switch(value) {
+	case    0:
+		displayLCDString(0, 0, "RED Skyrise");
+		break;
+	case    1:
+		displayLCDString(0, 0, "RED NO");
+		break;
+	case    2:
+		displayLCDString(0, 0, "BLUE Skyrise");
+		break;
+	case    3:
+		displayLCDString(0, 0, "BLUE NO");
+		break;
+	default:
+		displayLCDString(0, 0, "Unknown");
+		break;
+	}
 }
 
 /*-----------------------------------------------------------------------------*/
@@ -904,38 +907,38 @@ LcdAutonomousSet( int value, bool select = false )
 void
 LcdAutonomousSelection()
 {
-    TControllerButtons  button;
-    int  choice = 0;
+	TControllerButtons  button;
+	int  choice = 0;
 
-    // Turn on backlight
-    bLCDBacklight = true;
+	// Turn on backlight
+	bLCDBacklight = true;
 
-    // diaplay default choice
-    LcdAutonomousSet(0);
+	// diaplay default choice
+	LcdAutonomousSet(0);
 
-    while( bIfiRobotDisabled )
-        {
-        // this function blocks until button is pressed
-        button = getLcdButtons();
+	while( bIfiRobotDisabled )
+	{
+		// this function blocks until button is pressed
+		button = getLcdButtons();
 
-        // Display and select the autonomous routine
-        if( ( button == kButtonLeft ) || ( button == kButtonRight ) ) {
-            // previous choice
-            if( button == kButtonLeft )
-                if( --choice < 0 ) choice = MAX_CHOICE;
-            // next choice
-            if( button == kButtonRight )
-                if( ++choice > MAX_CHOICE ) choice = 0;
-            LcdAutonomousSet(choice);
-            }
+		// Display and select the autonomous routine
+		if( ( button == kButtonLeft ) || ( button == kButtonRight ) ) {
+			// previous choice
+			if( button == kButtonLeft )
+				if( --choice < 0 ) choice = MAX_CHOICE;
+			// next choice
+			if( button == kButtonRight )
+				if( ++choice > MAX_CHOICE ) choice = 0;
+			LcdAutonomousSet(choice);
+		}
 
-        // Select this choice
-        if( button == kButtonCenter )
-            LcdAutonomousSet(choice, true );
+		// Select this choice
+		if( button == kButtonCenter )
+			LcdAutonomousSet(choice, true );
 
-        // Don't hog the cpu !
-        wait1Msec(10);
-        }
+		// Don't hog the cpu !
+		wait1Msec(10);
+	}
 }
 
 
@@ -950,14 +953,14 @@ LcdAutonomousSelection()
 
 void pre_auton()
 {
-  // Set bStopTasksBetweenModes to false if you want to keep user created tasks running between
-  // Autonomous and Tele-Op modes. You will need to manage all user created tasks if set to false.
-  bStopTasksBetweenModes = true;
+	// Set bStopTasksBetweenModes to false if you want to keep user created tasks running between
+	// Autonomous and Tele-Op modes. You will need to manage all user created tasks if set to false.
+	bStopTasksBetweenModes = true;
 
 	// All activities that occur before the competition starts
 	// Example: clearing encoders, setting servo positions, ...
 
- 	// Initialize PID parameters
+	// Initialize PID parameters
 	pid_init();
 
 	// Initialize Lift
@@ -992,21 +995,21 @@ task autonomous()
 	resetMotorEncoder(backRight);
 
 	switch( MyAutonomous ) {
-        case    0:
-            do_autonomous_red_skyrise();
-            break;
-        case    1:
-            do_autonomous_red_NO_skyrise();
-            break;
-    		case    2:
-            do_autonomous_blue_skyrise();
-            break;
-        case    3:
-            do_autonomous_blue_NO_skyrise();
-            break;
-        default:
-            break;
-   }
+	case    0:
+		do_autonomous_red_skyrise();
+		break;
+	case    1:
+		do_autonomous_red_NO_skyrise();
+		break;
+	case    2:
+		do_autonomous_blue_skyrise();
+		break;
+	case    3:
+		do_autonomous_blue_NO_skyrise();
+		break;
+	default:
+		break;
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -1063,10 +1066,12 @@ task usercontrol()
 
 
 			} else if (vexRT(Btn6UXmtr2) == 1){
-			  // Preset Value -- for now it is just for FIRST Skyrise pickup
-			  pidRequestedValue = HEIGHT_FOR_FIRST_SKYRISE_SECTION;
-			  pidRequestedValue = HEIGHT_FOR_FIRST_SKYRISE_SECTION;
-      } else {
+			// Preset Value -- for now it is just for FIRST Skyrise pickup
+			pidRequestedValue = SKYRISE_MIDDLE_INTAKE_HEIGHT;
+			} else if (vexRT[Btn6DXmtr2]) {
+			pidRequestedValue = SKYRISE_LOW_INTAKE_HEIGHT;
+
+			} else {
 			// joystick control of slide arms
 
 			if (abs(vexRT[Ch2Xmtr2]) > JOYSTICK_MAX_NEUTRAL) {
@@ -1087,8 +1092,8 @@ task usercontrol()
 				debug_delay_counter = 0;
 
 				} else {
-					if (++debug_delay_counter > 20)
-						start_debug_stream = false;
+				if (++debug_delay_counter > 20)
+					start_debug_stream = false;
 
 				//					if (pid[0].previous_speed > 0.01)
 
@@ -1101,7 +1106,7 @@ task usercontrol()
 			pid[RIGHT_LIFT_PID_INDEX].pidRequestedValue = pidRequestedValue;
 		}
 
-    // Button 7D RESETs ARM (Four Bar)
+		// Button 7D RESETs ARM (Four Bar)
 		if (vexRT[Btn7DXmtr2] == 1)
 		{
 			int dummy;
@@ -1158,9 +1163,21 @@ task usercontrol()
 		// On Aria's request DISABLING diagonal move
 		if (abs(Y1) > abs(X1)) {
 			X1 = 0;
-	  } else {
-	    Y1 = 0;
-	  }
+			} else {
+			Y1 = 0;
+		}
+
+		// Aria's request #2: Slow mode when 5U pressed
+		if (vexRT[Btn5U]) {
+			float temp;
+			temp = X1 * SLOW_MODE_FACTOR;
+			X1 = temp;
+			temp = X2 * SLOW_MODE_FACTOR;
+			X2 = temp;
+			temp = Y1 * SLOW_MODE_FACTOR;
+			Y1 = temp;
+
+		}
 
 		//Remote Control Commands
 		motor[frontRight] = Y1 - X2 - X1;
