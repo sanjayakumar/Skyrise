@@ -718,7 +718,6 @@ void do_autonomous_blue_skyrise() {
 	// Step 8: Move Back
 	move('b', 1400, 127);
 	wait1Msec(wait_time_between_steps);
-v
 
 
 	// Step 9a: Turn towards Skyrise deliver base
