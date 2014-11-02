@@ -1,3 +1,4 @@
+
 #pragma config(UART_Usage, UART1, uartVEXLCD, baudRate19200, IOPins, None, None)
 #pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
 #pragma config(I2C_Usage, I2C1, i2cSensors)
@@ -717,7 +718,7 @@ void do_autonomous_blue_skyrise() {
 	// Step 8: Move Back
 	move('b', 1400, 127);
 	wait1Msec(wait_time_between_steps);
-
+v
 
 
 	// Step 9a: Turn towards Skyrise deliver base
