@@ -35,7 +35,7 @@
 
 
 // Parameter DEFINEs
-#define SLIDE_MAX_HEIGHT		  		1130
+#define SLIDE_MAX_HEIGHT		  		2320
 #define FOUR_BAR_MAX_HEIGHT 			700
 #define LEFT_SLIDE_SENSOR_INDEX		leftEncoder
 #define RIGHT_SLIDE_SENSOR_INDEX	rightEncoder
@@ -65,8 +65,8 @@
 #define SLOW_MODE_FACTOR					0.35
 
 // This is the preset height for picking up the skyrise section at the highest point (to deliver the first one)
-#define SKYRISE_MIDDLE_INTAKE_HEIGHT 215
-#define SKYRISE_LOW_INTAKE_HEIGHT    139
+#define SKYRISE_MIDDLE_INTAKE_HEIGHT 430
+#define SKYRISE_LOW_INTAKE_HEIGHT    278
 
 #define USER_CONTROL_LOOP_TIME	50 // Milliseconds
 #define PID_LOOP_TIME						25
