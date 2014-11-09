@@ -48,7 +48,7 @@
 #define SLIDE_MOTOR_SCALE     		1
 #define FOUR_BAR_MOTOR_SCALE 			-1
 #define SLIDE_MOTOR_DRIVE_MAX			127.0
-#define SLIDE_MOTOR_DRIVE_MIN			(-75.0)
+#define SLIDE_MOTOR_DRIVE_MIN			(-110.0)
 #define FOUR_BAR_MOTOR_DRIVE_MAX	127.0
 #define FOUR_BAR_MOTOR_DRIVE_MIN 	(-80.0)
 #define MAX_SLIDE_MOTOR_POWER_DELTA			30
@@ -108,18 +108,13 @@ pidTaskParameters pid[ NUM_PID_CONTROLS ];
 
 // These could be constants but leaving
 // as variables allows them to be modified in the debugger "live"
-float  slide_Kp = 2.2;
+float  slide_Kp = 1.5;
 float  slide_Ki = 0.0;
 float  slide_Kd = 1;
 
-float  fourBar_Kp = 1.5;
+float  fourBar_Kp = 1.2;
 float  fourBar_Ki = 0.00;
-float  fourBar_Kd = 1;
-
-#ifdef DEBUG_PID
-short start_debug_stream = false;
-int debug_delay_counter = 0;
-#endif // DEBUG PID
+float  fourBar_Kd = 0.5;
 
 #ifdef DEBUG_IME
 float max_mismatch = 0.0;
@@ -139,6 +134,10 @@ task PidController()
 	float  pidError;
 	float  pidDerivative;
 	float  pidDrive;
+
+#ifdef DEBUG_PID
+int max_mismatch = 0;
+#endif /* DEBUG_PID */
 
 
 	int i, j;
@@ -183,7 +182,7 @@ task PidController()
 				pid[i].errorIntegral = 0;
 
 			// calculate the derivative
-			pidDerivative = pidError - pid[i].previous_error;
+			pidDerivative =  pid[i].previous_error - pidError;
 			pid[i].previous_error  = pidError;
 
 			// calculate drive
@@ -219,12 +218,12 @@ task PidController()
 
 #ifdef DEBUG_PID
 			pid[i].pid_sensor_previous_value = pidSensorCurrentValue;
-			if (i==0 && start_debug_stream) {
+			if (i == 0 && abs(vexRT[Ch2Xmtr2]) > JOYSTICK_MAX_NEUTRAL ) {
 				float sensor_mismatch = pid[0].pid_sensor_previous_value - pid[1].pid_sensor_previous_value;
 				if (abs(sensor_mismatch) > abs(max_mismatch))
 					max_mismatch = sensor_mismatch;
-				// writeDebugStreamLine("pidDrive: %f pidError: %f max_mismatch: %f PID: %f %f %f", pidDrive, pidError, max_mismatch, pid[i].Kp * pidError, pid[i].Ki * pid[i].errorIntegral, pid[i].Kd * pidDerivative);
-				writeDebugStreamLine("pidDrive: %f pidError: %f max_mismatch: %f sensor_mismatch %f ", pidDrive, pidError, max_mismatch, sensor_mismatch);
+				  // writeDebugStreamLine("pidDrive: %f pidError: %f  PID: %f %f %f", pidDrive, pidError, pid[i].Kp * pidError, pid[i].Ki * pid[i].errorIntegral, pid[i].Kd * pidDerivative);
+			    writeDebugStreamLine("pidDrive: %f pidError: %f max_mismatch: %f sensor_mismatch %f ", pidDrive, pidError, max_mismatch, sensor_mismatch);
 			}
 #endif // DEBUG_PID
 
@@ -957,7 +956,7 @@ void pre_auton()
 	// Autonomous and Tele-Op modes. You will need to manage all user created tasks if set to false.
 	bStopTasksBetweenModes = true;
 
-	// All activities that occur before the competition starts
+	// All activities that occur before the competition
 	// Example: clearing encoders, setting servo positions, ...
 
 	// Initialize PID parameters
@@ -1086,20 +1085,6 @@ task usercontrol()
 				if (pidRequestedValue <= pid[LEFT_LIFT_PID_INDEX].min_height) {
 					pidRequestedValue = pid[LEFT_LIFT_PID_INDEX].min_height;
 				}
-
-#ifdef DEBUG_PID
-				start_debug_stream = true;
-				debug_delay_counter = 0;
-
-				} else {
-				if (++debug_delay_counter > 20)
-					start_debug_stream = false;
-
-				//					if (pid[0].previous_speed > 0.01)
-
-
-				//					DebugStreamLine("speed: %f", pid[0].previous_speed*1000.0/60.0);
-#endif DEBUG_PID
 			}
 
 			pid[LEFT_LIFT_PID_INDEX].pidRequestedValue = pidRequestedValue;
