@@ -122,6 +122,8 @@ float  fourBar_Kd = 0.5;
 float max_mismatch = 0.0;
 #endif
 
+int motor_index[4];
+
 /*-----------------------------------------------------------------------------*/
 /*                                                                             */
 /*  pid control task                                                           */
@@ -138,7 +140,7 @@ task PidController()
 	float  pidDrive;
 
 #ifdef DEBUG_PID
-int max_mismatch = 0;
+	int max_mismatch = 0;
 #endif /* DEBUG_PID */
 
 
@@ -169,6 +171,8 @@ int max_mismatch = 0;
 
 			// calculate error
 			pidError = pid[i].pidRequestedValue - pidSensorCurrentValue;
+
+			if (pidError > 400) writeDebugStreamLine("PID Error is %f", pidError);
 
 			// integral - if Ki is not 0
 			if( pid[i].Ki != 0 )
@@ -224,8 +228,8 @@ int max_mismatch = 0;
 				float sensor_mismatch = pid[0].pid_sensor_previous_value - pid[1].pid_sensor_previous_value;
 				if (abs(sensor_mismatch) > abs(max_mismatch))
 					max_mismatch = sensor_mismatch;
-				  // writeDebugStreamLine("pidDrive: %f pidError: %f  PID: %f %f %f", pidDrive, pidError, pid[i].Kp * pidError, pid[i].Ki * pid[i].errorIntegral, pid[i].Kd * pidDerivative);
-			    writeDebugStreamLine("pidDrive: %f pidError: %f max_mismatch: %f sensor_mismatch %f ", pidDrive, pidError, max_mismatch, sensor_mismatch);
+				// writeDebugStreamLine("pidDrive: %f pidError: %f  PID: %f %f %f", pidDrive, pidError, pid[i].Kp * pidError, pid[i].Ki * pid[i].errorIntegral, pid[i].Kd * pidDerivative);
+				writeDebugStreamLine("pidDrive: %f pidError: %f max_mismatch: %f sensor_mismatch %f ", pidDrive, pidError, max_mismatch, sensor_mismatch);
 			}
 #endif // DEBUG_PID
 
@@ -395,7 +399,6 @@ ime2_index = (ime2_index != IME_HISTORY_LENGTH) ? ime2_index : 0;
 		return;
 	}
 
-	writeDebugStreamLine("ime1_index: %d ime2_index %d", ime1_index, ime2_index);
 	for (i=0; i<IME_HISTORY_LENGTH; i++) {
 		writeDebugStreamLine("%d", ime1_history[i]);
 	}
@@ -408,8 +411,26 @@ ime2_index = (ime2_index != IME_HISTORY_LENGTH) ? ime2_index : 0;
 }
 #endif DEBUG_IME
 
+void wait_for_move_done(int dist) {
+	// Wait until target values are reached
 
-void move(char dir, int dist, int power)
+	int i;
+	do {
+		ime1 = nMotorEncoder(backRight);
+		ime2 = nMotorEncoder(backLeft);
+		// writeDebugStreamLine("ime1Delta: %f ime2Delta: %f", abs(ime1 - initial_ime1), abs(ime2 - initial_ime2));
+#ifdef DEBUG_IME
+		check_ime();
+#endif // DEBUG_IME
+	} while ( (abs(ime1 - initial_ime1) + abs(ime2 - initial_ime2))/2 < abs(dist));
+
+	// Stop motors
+	for(i=0; i < 4; i++) {
+		motor[motor_index[i]] = 0;
+	}
+}
+
+void start_move(char dir, int dist, int power)
 {
 	int X1, Y1, X2;
 
@@ -469,7 +490,6 @@ void move(char dir, int dist, int power)
 #define BL 3
 	int target_power[4];
 	int current_power[4];
-	int motor_index[4];
 	bool target_power_reached[4];
 	int i;
 
@@ -480,10 +500,7 @@ void move(char dir, int dist, int power)
 	target_power[BL] = Y1 + X2 - X1;
 
 
-	motor_index[FR] = frontRight;
-	motor_index[BR] = backRight;
-	motor_index[FL] = frontLeft;
-	motor_index[BL] = backLeft;
+
 
 	for(i=0; i < 4; i++) {
 		current_power[i] = 0;
@@ -517,22 +534,11 @@ void move(char dir, int dist, int power)
 
 		wait1Msec(AUTO_LOOP_TIME);
 	}
+}
 
-	// Wait until target values are reached
-
-	do {
-		ime1 = nMotorEncoder(backRight);
-		ime2 = nMotorEncoder(backLeft);
-		// writeDebugStreamLine("ime1Delta: %f ime2Delta: %f", abs(ime1 - initial_ime1), abs(ime2 - initial_ime2));
-#ifdef DEBUG_IME
-		check_ime();
-#endif // DEBUG_IME
-	} while ( (abs(ime1 - initial_ime1) + abs(ime2 - initial_ime2))/2 < abs(dist));
-
-	// Stop motors
-	for(i=0; i < 4; i++) {
-		motor[motor_index[i]] = 0;
-	}
+void move(char dir, int dist, int power){
+	start_move(dir, dist, power);
+	wait_for_move_done(dist);
 }
 
 void turn(char dir, int angle, int power) {
@@ -551,70 +557,106 @@ void move_arm_to_position(int position) {
 	pid[FOUR_BAR_PID_INDEX].pidRequestedValue = position;
 }
 
+#define SLIDE_TARGET_THRESHOLD 20
+
+
+void wait_for_arm_done() {
+	float pidSensorCurrentValue;
+	float pidError;
+
+	do {
+		// Read the sensor value and scale
+		pidSensorCurrentValue = SensorValue[ pid[2].pid_sensor_index] * pid[2].pid_sensor_scale;
+
+		// calculate error
+		pidError = pid[2].pidRequestedValue - pidSensorCurrentValue;
+	} while (abs (pidError) > SLIDE_TARGET_THRESHOLD);
+}
+
+void wait_for_slide_done() {
+	// NOTE: Since both the left and right slides move together, we're only going to wait for the LEFT slide to reach its destination.
+	float pidSensorCurrentValue;
+	float pidError;
+
+
+	do {
+		// Read the sensor value and scale
+		pidSensorCurrentValue = SensorValue[ pid[LEFT_LIFT_PID_INDEX].pid_sensor_index] * pid[LEFT_LIFT_PID_INDEX].pid_sensor_scale;
+
+		// calculate error
+		pidError = pid[LEFT_LIFT_PID_INDEX].pidRequestedValue - pidSensorCurrentValue;
+		wait1Msec(AUTO_LOOP_TIME);
+	} while (abs (pidError) > SLIDE_TARGET_THRESHOLD);
+}
+
+void do_move_back() {
+	move('b', 3000, 127);
+}
+
 
 void do_autonomous_red_skyrise() {
 
 	// Getting the Skyrise section
-	 int wait_time_between_steps = 100;
+	int wait_time_between_steps = 10;
 
 	// Step 1: Move slide up
-	move_slide_to_position(500);
-	wait1Msec(2000);
+	move_slide_to_position(450);
+	wait_for_slide_done();
 	debug_autonomous();
 
 	// Step 2: Move Forward to Grab Skyrise
-	move('f', 100, 127);
-	wait1Msec(500);
+	start_move('f', 100, 127);
+	wait_for_move_done(100);
 
 	// Step 3: Raise slide up
 	move_slide_to_position(950);
-	wait1Msec(1000);
+	wait_for_slide_done();
 
 	// Step 4: Move back to take out skyrise
-	move('b', 815, 127);
-	wait1Msec(1000);
+	start_move('b', 815, 127);
+	wait_for_move_done(815);
 
 	// Step 5: Lower arm to deliver skyrise
 	move_slide_to_position(0);
-	wait1Msec(2000); // This wait is longer because the slide functions are asynchronous
+	wait_for_slide_done(); // This wait is longer because the slide functions are asynchronous
 	// In other words -- they don't complete the action before returning
 
 	// Step 6a: Move Back after delivery
-	move('b', 140, 127);
-	wait1Msec(wait_time_between_steps);
+	start_move('b', 140, 127);
+	wait_for_move_done(140);
 
 	// Step 6b: Raise arm over skyrise
 	move_slide_to_position(525);
-	wait1Msec(1500);
+	wait_for_slide_done();
 
 	// Step 7a: Move forward towards auto-loader
-	move('f', 500, 127);
-	wait1Msec(1000);
+	start_move('f', 500, 127);
+	wait_for_move_done(500);
 
 	// Step 7b: Lower arm more
-	move_slide_to_position(450);
-	wait1Msec(1000);
+	move_slide_to_position(425);
+	wait_for_slide_done();
 
 	//Step 7c: Move forward more
-	move('f', 600, 127);
-	wait1Msec(1000);
+	start_move('f', 600, 127);
+	wait_for_move_done(600);
 
 	// Step 8: Raise slide
-  move_slide_to_position(1050);
-	wait1Msec(1000);
+	move_slide_to_position(1200);
+	wait_for_slide_done();
 
 	// Step 9a: Move back to take out second skyrise
-	move('b', 770, 127);
-	wait1Msec(1000);
+	start_move('b', 790, 127);
+	wait_for_move_done(790);
 
 	// Step 9b: Lower arm to place second skyrise
 	move_slide_to_position(600);
-	wait1Msec(1000);
+	wait_for_slide_done();
 
 
 	// Step 10: Move back to deliver second skyrise
-	move('b', 140, 127);
-	wait1Msec(1000);
+	start_move('b', 140, 127);
+	wait_for_move_done(140);
 
 }
 
@@ -937,6 +979,12 @@ void pre_auton()
 
 	// All activities that occur before the competition
 	// Example: clearing encoders, setting servo positions, ...
+
+	// Init Motor index array
+	motor_index[FR] = frontRight;
+	motor_index[BR] = backRight;
+	motor_index[FL] = frontLeft;
+	motor_index[BL] = backLeft;
 
 	// Initialize PID parameters
 	pid_init();
