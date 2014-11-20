@@ -599,6 +599,85 @@ void do_autonomous_red_skyrise() {
 	// Getting the Skyrise section
 	int wait_time_between_steps = 10;
 
+	//Step 1: Move back one tile
+	move('b', 150, 127);
+	wait1Msec(wait_time_between_steps);
+
+	//Step 2: Raise slide to allign with skyrise
+	move_slide_to_position(450);
+	wait_for_slide_done();
+
+	//Step 3: Move forward to get skyrise
+	move('f', 200, 80);
+	wait1Msec(wait_time_between_steps);
+
+	//Step 4: Raise slide to take out skyrise
+	move_slide_to_position(950);
+	wait_for_slide_done();
+
+	//Step 5: Move sideways to adjust for cube
+	move('l', 75, 127);
+	wait1Msec(wait_time_between_steps);
+
+	//Step 5: Move back to push cube
+	move('b', 1000, 127);
+	wait1Msec(wait_time_between_steps);
+	return;
+
+	//Step 6: Move forward to deliver skyrise
+	move('f', 520, 127);
+	wait1Msec(wait_time_between_steps);
+
+	//Step 7: Lower slide to place skyrise in
+	move_slide_to_position(0);
+	wait_for_slide_done();
+
+	//Step 8: Move back
+	move('b', 100, 127);
+	wait1Msec(1000);
+
+	//Step 9: Raise slide
+	move_slide_to_position(255);
+	wait_for_slide_done();
+
+	//Step 10: Move back one tile
+	move('b', 380, 127);
+	wait1Msec(1000);
+
+	//Step 11: Raise slide to pick up cube
+	move_slide_to_position(1350);
+	wait_for_slide_done();
+
+	//Step 12: Move forwards
+	move('f', 935, 127);
+	wait1Msec(1000);
+
+	//Step 13: Move right
+	move('r', 250, 127);
+	wait1Msec(1000);
+
+	//Step 14: Turn clockwise to deliver the two cubes
+	turn('c', 1035, 127);
+	wait1Msec(1000);
+
+	//Step 15: Move back to position for cube delivery
+	move('b', 225, 127);
+	wait1Msec(1000);
+
+	//Step 16: Move slide down
+	move_slide_to_position(10);
+	wait_for_slide_done();
+
+	//Step 17: Move back to deliver cubes
+	move('f', 250, 127);
+	wait1Msec(1000);
+}
+
+void do_autonomous_red_two_skyrise() {
+
+	// Getting the Skyrise section
+	int wait_time_between_steps = 10;
+
 	// Step 1: Move slide up
 	move_slide_to_position(450);
 	wait_for_slide_done();
