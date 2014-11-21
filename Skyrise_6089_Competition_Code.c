@@ -48,7 +48,7 @@
 #define SLIDE_MOTOR_SCALE     		1
 #define FOUR_BAR_MOTOR_SCALE 			-1
 #define SLIDE_MOTOR_DRIVE_MAX			127.0
-#define SLIDE_MOTOR_DRIVE_MIN			(-110.0)
+#define SLIDE_MOTOR_DRIVE_MIN			(-80.0)
 #define FOUR_BAR_MOTOR_DRIVE_MAX	127.0
 #define FOUR_BAR_MOTOR_DRIVE_MIN 	(-80.0)
 #define MAX_SLIDE_MOTOR_POWER_DELTA			30
@@ -75,7 +75,7 @@
 
 // Structure to store PID parameters -- note we have 3; one for each slide and one for the Arm
 typedef struct {
-	float pidRequestedValue;
+	volatile float pidRequestedValue;
 
 	float Kp;
 	float Ki;
@@ -112,7 +112,7 @@ pidTaskParameters pid[ NUM_PID_CONTROLS ];
 // as variables allows them to be modified in the debugger "live"
 float  slide_Kp = 1.5;
 float  slide_Ki = 0.0;
-float  slide_Kd = 1;
+float  slide_Kd = 0;
 
 float  fourBar_Kp = 1.2;
 float  fourBar_Ki = 0.00;
@@ -122,7 +122,7 @@ float  fourBar_Kd = 0.5;
 float max_mismatch = 0.0;
 #endif
 
-int motor_index[4];
+volatile int motor_index[4];
 
 /*-----------------------------------------------------------------------------*/
 /*                                                                             */
@@ -158,7 +158,13 @@ task PidController()
 
 	j = 0;
 
+ 	//int pid_loop_count = 0;
+
 	while( true ) {
+
+  //writeDebugStreamLine("PID Loop count: %d", pid_loop_count++);
+
+
 
 		for (i = 0; i < NUM_PID_CONTROLS; i++) {
 
@@ -172,7 +178,7 @@ task PidController()
 			// calculate error
 			pidError = pid[i].pidRequestedValue - pidSensorCurrentValue;
 
-			if (pidError > 400) writeDebugStreamLine("PID Error is %f", pidError);
+			// DEBUG if (pidError > 400) writeDebugStreamLine("PID Error is %f", pidError);
 
 			// integral - if Ki is not 0
 			if( pid[i].Ki != 0 )
@@ -350,6 +356,7 @@ void init_lift(){
 
 #define AUTO_MAX_DELTA 10
 #define AUTO_LOOP_TIME 15
+#define AUTO_LOOP_TIME_SLOW 50
 
 int power_ramp(int current, int target) {
 	if (target > current) {
@@ -369,8 +376,8 @@ int power_ramp(int current, int target) {
 
 
 
-long ime1, ime2;
-long initial_ime1, initial_ime2;
+volatile long ime1, ime2;
+volatile long initial_ime1, initial_ime2;
 
 #ifdef DEBUG_IME
 
@@ -422,6 +429,7 @@ void wait_for_move_done(int dist) {
 #ifdef DEBUG_IME
 		check_ime();
 #endif // DEBUG_IME
+		wait1Msec(AUTO_LOOP_TIME_SLOW);
 	} while ( (abs(ime1 - initial_ime1) + abs(ime2 - initial_ime2))/2 < abs(dist));
 
 	// Stop motors
@@ -557,7 +565,7 @@ void move_arm_to_position(int position) {
 	pid[FOUR_BAR_PID_INDEX].pidRequestedValue = position;
 }
 
-#define SLIDE_TARGET_THRESHOLD 20
+#define SLIDE_TARGET_THRESHOLD 15
 
 
 void wait_for_arm_done() {
@@ -570,29 +578,32 @@ void wait_for_arm_done() {
 
 		// calculate error
 		pidError = pid[2].pidRequestedValue - pidSensorCurrentValue;
+		wait1Msec(AUTO_LOOP_TIME_SLOW);
 	} while (abs (pidError) > SLIDE_TARGET_THRESHOLD);
 }
 
 void wait_for_slide_done() {
-	// NOTE: Since both the left and right slides move together, we're only going to wait for the LEFT slide to reach its destination.
+
 	float pidSensorCurrentValue;
 	float pidError;
-
 
 	do {
 		// Read the sensor value and scale
 		pidSensorCurrentValue = SensorValue[ pid[LEFT_LIFT_PID_INDEX].pid_sensor_index] * pid[LEFT_LIFT_PID_INDEX].pid_sensor_scale;
 
-		// calculate error
+
 		pidError = pid[LEFT_LIFT_PID_INDEX].pidRequestedValue - pidSensorCurrentValue;
-		wait1Msec(AUTO_LOOP_TIME);
+
+		pidSensorCurrentValue = SensorValue[ pid[RIGHT_LIFT_PID_INDEX].pid_sensor_index] * pid[RIGHT_LIFT_PID_INDEX].pid_sensor_scale;
+
+		pidError += pid[RIGHT_LIFT_PID_INDEX].pidRequestedValue - pidSensorCurrentValue;
+
+	  pidError = pidError/2.0;
+
+
+		wait1Msec(AUTO_LOOP_TIME_SLOW);
 	} while (abs (pidError) > SLIDE_TARGET_THRESHOLD);
 }
-
-void do_move_back() {
-	move('b', 3000, 127);
-}
-
 
 void do_autonomous_red_skyrise() {
 
@@ -601,27 +612,65 @@ void do_autonomous_red_skyrise() {
 
 	//Step 1: Move back one tile
 	move('b', 150, 127);
-	wait1Msec(wait_time_between_steps);
+	writeDebugStreamLine("Step 1 Done");
 
-	//Step 2: Raise slide to allign with skyrise
+	//Step 2: Raise slide to align with skyrise
 	move_slide_to_position(450);
+	writeDebugStreamLine("Step 2a Done");
 	wait_for_slide_done();
+	writeDebugStreamLine("Step 2b Done");
+
 
 	//Step 3: Move forward to get skyrise
 	move('f', 200, 80);
-	wait1Msec(wait_time_between_steps);
+	writeDebugStreamLine("Step 3 Done");
+
 
 	//Step 4: Raise slide to take out skyrise
 	move_slide_to_position(950);
 	wait_for_slide_done();
+	writeDebugStreamLine("Step 4 Done");
+
 
 	//Step 5: Move sideways to adjust for cube
-	move('l', 75, 127);
-	wait1Msec(wait_time_between_steps);
+	move('l', 59, 127);
+	writeDebugStreamLine("Step 5 Done");
 
-	//Step 5: Move back to push cube
-	move('b', 1000, 127);
-	wait1Msec(wait_time_between_steps);
+
+	//Step 5: Move back
+	start_move('b', 550, 120);
+	wait1Msec(100);
+	move_slide_to_position(420);
+	wait_for_move_done(550);
+	wait_for_slide_done();
+
+	move('b', 66, 127);
+
+	move_slide_to_position(0);
+	wait_for_slide_done();
+
+	move('b', 90, 127);
+
+
+
+	move_slide_to_position(400);
+	wait_for_slide_done();
+	move_slide_to_position(1250);
+
+
+	move('f', 1125, 127);
+
+	move('l', 730, 127);
+
+	move('b', 40, 127);
+
+	move_slide_to_position(0);
+	wait_for_slide_done();
+
+	move('f', 75, 127);
+
+
+
 	return;
 
 	//Step 6: Move forward to deliver skyrise
@@ -1012,7 +1061,7 @@ LcdAutonomousSelection()
 	// Turn on backlight
 	bLCDBacklight = true;
 
-	// diaplay default choice
+	// display default choice
 	LcdAutonomousSet(0);
 
 	while( bIfiRobotDisabled )
@@ -1072,7 +1121,7 @@ void pre_auton()
 	init_lift();
 
 	// start the PID task
-	startTask( PidController );
+	startTask( PidController, 6 );
 
 	// Ask for user input on LCD as to which Autonomous to run
 	LcdAutonomousSelection();
