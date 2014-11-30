@@ -425,7 +425,7 @@ void wait_for_move_done(int dist) {
 	do {
 		ime1 = nMotorEncoder(backRight);
 		ime2 = nMotorEncoder(backLeft);
-		// writeDebugStreamLine("ime1Delta: %f ime2Delta: %f", abs(ime1 - initial_ime1), abs(ime2 - initial_ime2));
+		writeDebugStreamLine("ime1Delta: %f ime2Delta: %f", abs(ime1 - initial_ime1), abs(ime2 - initial_ime2));
 #ifdef DEBUG_IME
 		check_ime();
 #endif // DEBUG_IME
@@ -611,20 +611,22 @@ void do_autonomous_red_skyrise() {
 	int wait_time_between_steps = 10;
 
 	//Step 1: Move back one tile
-	move('b', 150, 127);
+	start_move('b', 150, 127);
+	wait_for_move_done(150);
 	writeDebugStreamLine("Step 1 Done");
 
 	//Step 2: Raise slide to align with skyrise
-	move_slide_to_position(450);
+	move_slide_to_position(600);
 	writeDebugStreamLine("Step 2a Done");
 	wait_for_slide_done();
 	writeDebugStreamLine("Step 2b Done");
 
+	move_slide_to_position(435);
 
 	//Step 3: Move forward to get skyrise
 	move('f', 200, 80);
 	writeDebugStreamLine("Step 3 Done");
-
+	wait1Msec(500);
 
 	//Step 4: Raise slide to take out skyrise
 	move_slide_to_position(950);
@@ -632,22 +634,25 @@ void do_autonomous_red_skyrise() {
 	writeDebugStreamLine("Step 4 Done");
 
 
+
+
 	//Step 5: Move sideways to adjust for cube
-	move('l', 59, 127);
+	move('l', 54, 127);
 	writeDebugStreamLine("Step 5 Done");
 
 
 	//Step 5: Move back
-	start_move('b', 550, 120);
+	start_move('b', 572, 120);
 	wait1Msec(100);
 	move_slide_to_position(420);
-	wait_for_move_done(550);
+	wait_for_move_done(580);
 	wait_for_slide_done();
 
 	move('b', 66, 127);
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
+
 
 	move('b', 90, 127);
 
@@ -658,16 +663,17 @@ void do_autonomous_red_skyrise() {
 	move_slide_to_position(1250);
 
 
+
 	move('f', 1090, 127);
 
 	move('l', 730, 127);
 
-	move('b', 40, 127);
+	move('b', 60, 127);
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
 
-	move('f', 75, 127);
+	move('f', 90, 127);
 
 }
 
@@ -680,6 +686,7 @@ void do_autonomous_red_two_skyrise() {
 	move_slide_to_position(450);
 	wait_for_slide_done();
 	debug_autonomous();
+
 
 	// Step 2: Move Forward to Grab Skyrise
 	start_move('f', 100, 127);
@@ -774,8 +781,8 @@ void do_autonomous_red_NO_skyrise() {
 // BLUE SKYRISE AUTONOMOUS
 //
 ///////////////////////////////
-
 void do_autonomous_blue_skyrise() {
+
 
 	// Getting the Skyrise section
 
@@ -785,37 +792,38 @@ void do_autonomous_blue_skyrise() {
 
 
 	//Step 2: Raise slide to align with skyrise
-	move_slide_to_position(450);
+	move_slide_to_position(600);
 
 	wait_for_slide_done();
 
+	move_slide_to_position(435);
+	move('r', 52, 127);
+	wait1Msec(150);
 
 	//Step 3: Move forward to get skyrise
-	move('f', 200, 80);
+	move('f', 202, 80);
 	wait1Msec(25);
 	writeDebugStreamLine("Step 3 Done");
-
 
 	//Step 4: Raise slide to take out skyrise
 	move_slide_to_position(1000);
 	wait_for_slide_done();
 	writeDebugStreamLine("Step 4 Done");
 
-	//Step 5: Move sideways to adjust for cube
-	move('r', 65, 127);
-	writeDebugStreamLine("Step 5 Done");
+	move('r', 30, 127)
 
 	//Step 5: Move back
-	start_move('b', 550, 120);
+	start_move('b', 590, 120);
 	wait1Msec(100);
 	move_slide_to_position(420);
 	wait_for_move_done(550);
 	wait_for_slide_done();
 
-	move('b', 50, 127);
+	move('b', 57, 127);
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
+
 
 	move('b', 90, 127);
 
@@ -827,11 +835,12 @@ void do_autonomous_blue_skyrise() {
 	move_slide_to_position(1250);
 
 
-	move('f', 990, 127);
+	move('f', 1100, 127);
 
 	move('r', 730, 127);
 
-	move('b', 40, 127);
+	move('b', 35, 127);
+
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
@@ -1068,10 +1077,10 @@ task autonomous()
 	resetMotorEncoder(backRight);
 
 	switch( MyAutonomous ) {
-	case    1:
+	case    0:
 		do_autonomous_red_skyrise();
 		break;
-	case    0:
+	case    1:
 		do_autonomous_red_NO_skyrise();
 		break;
 	case    2:
