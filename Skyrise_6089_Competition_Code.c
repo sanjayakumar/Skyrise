@@ -425,7 +425,6 @@ void wait_for_move_done(int dist) {
 	do {
 		ime1 = nMotorEncoder(backRight);
 		ime2 = nMotorEncoder(backLeft);
-		writeDebugStreamLine("ime1Delta: %f ime2Delta: %f", abs(ime1 - initial_ime1), abs(ime2 - initial_ime2));
 #ifdef DEBUG_IME
 		check_ime();
 #endif // DEBUG_IME
@@ -608,7 +607,6 @@ void wait_for_slide_done() {
 void do_autonomous_red_skyrise() {
 
 	// Getting the Skyrise section
-	int wait_time_between_steps = 10;
 
 	//Step 1: Move back one tile
 	start_move('b', 150, 127);
@@ -796,13 +794,13 @@ void do_autonomous_blue_skyrise() {
 
 	wait_for_slide_done();
 
-	move_slide_to_position(435);
-	move('r', 52, 127);
-	wait1Msec(150);
+	move_slide_to_position(430);
+	move('r', 24, 127);
+	//wait1Msec(150);
 
 	//Step 3: Move forward to get skyrise
 	move('f', 202, 80);
-	wait1Msec(25);
+	wait1Msec(150);
 	writeDebugStreamLine("Step 3 Done");
 
 	//Step 4: Raise slide to take out skyrise
@@ -810,22 +808,38 @@ void do_autonomous_blue_skyrise() {
 	wait_for_slide_done();
 	writeDebugStreamLine("Step 4 Done");
 
-	move('r', 30, 127)
+
+
+
+	move('r', 70, 127);
+	float wall_ime1 = nMotorEncoder(backRight);
+	float wall_ime2	= nMotorEncoder(backLeft);
 
 	//Step 5: Move back
-	start_move('b', 590, 120);
+	start_move('b', 600, 127);
 	wait1Msec(100);
 	move_slide_to_position(420);
-	wait_for_move_done(550);
+	wait_for_move_done(600);
 	wait_for_slide_done();
 
+	writeDebugStreamLine("Dist1: %f	 Dist1: %f	Avg: %f ", abs(nMotorEncoder(backRight)-wall_ime1), abs(nMotorEncoder(backLeft)-wall_ime2),(abs(nMotorEncoder(backRight)-wall_ime1)
+	+ abs(nMotorEncoder(backLeft)-wall_ime2))/2);
+
 	move('b', 57, 127);
+
+  writeDebugStreamLine("Dist2: %f	 Dist2: %f	Avg: %f", abs(nMotorEncoder(backRight)-wall_ime1), abs(nMotorEncoder(backLeft)-wall_ime2),(abs(nMotorEncoder(backRight)-wall_ime1)+ abs(nMotorEncoder(backLeft)-wall_ime2))/2);
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
 
+	writeDebugStreamLine("Dist3: %f	 Dist3: %f	Avg: %f", abs(nMotorEncoder(backRight)-wall_ime1), abs(nMotorEncoder(backLeft)-wall_ime2),(abs(nMotorEncoder(backRight)-wall_ime1)+ abs(nMotorEncoder(backLeft)-wall_ime2))/2);
 
 	move('b', 90, 127);
+
+	writeDebugStreamLine("Dist4: %f	 Dist4: %f	Avg: %f", abs(nMotorEncoder(backRight)-wall_ime1), abs(nMotorEncoder(backLeft)-wall_ime2),(abs(nMotorEncoder(backRight)-wall_ime1)+ abs(nMotorEncoder(backLeft)-wall_ime2))/2);
+
+
+
 
 
 
