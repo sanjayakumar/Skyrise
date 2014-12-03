@@ -743,19 +743,17 @@ void do_autonomous_red_two_skyrise() {
 }
 
 void do_autonomous_blue_cube_only() {
-	move_slide_to_position(1500);
-	move('b', 100, 127);
-	move('r', 400, 127);
-	move_arm_to_position(1390);
-	move('r', 1020, 127);
-	wait1Msec(300);
-	move('f', 250, 127);
-	wait1Msec(500);
+	move('l', 100, 127);
+	move_slide_to_position(1660);
+	move('b', 1400, 127);
+	wait_for_slide_done();
+	move_arm_to_position(410);
+	wait_for_arm_done();
+	turn('c', 1340, 100);
 	move_slide_to_position(700);
-	wait1Msec(1000);
-	move('b', 520, 127);
-	move_slide_to_position(0);
-	move_arm_to_position(0);
+	wait_for_slide_done();
+	move('b', 300, 127);
+
 }
 
 void do_autonomous_red_cube_only() {
@@ -770,21 +768,6 @@ void do_autonomous_red_cube_only() {
 	wait_for_slide_done();
 	move('b', 300, 127);
 
-
- /*move_slide_to_position(1500);
-	move('b', 100, 127);
-	move('l', 400, 127);
-	move_arm_to_position(1390);
-	move('l', 1020, 127);
-	wait1Msec(300);
-	move('f', 250, 127);
-	wait1Msec(500);
-	move_slide_to_position(700);
-	wait1Msec(1000);
-	move('b', 520, 127);
-
-	move_slide_to_position(0);
-	move_arm_to_position(0);*/
 }
 ///////////////////////////////
 //
