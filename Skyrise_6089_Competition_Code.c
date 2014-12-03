@@ -111,7 +111,7 @@ pidTaskParameters pid[ NUM_PID_CONTROLS ];
 // These could be constants but leaving
 // as variables allows them to be modified in the debugger "live"
 float  slide_Kp = 1.5;
-float  slide_Ki = 0.0;
+float  slide_Ki = 0.01;
 float  slide_Kd = 0;
 
 float  fourBar_Kp = 1.2;
@@ -564,7 +564,7 @@ void move_arm_to_position(int position) {
 	pid[FOUR_BAR_PID_INDEX].pidRequestedValue = position;
 }
 
-#define SLIDE_TARGET_THRESHOLD 15
+#define SLIDE_TARGET_THRESHOLD 20
 
 
 void wait_for_arm_done() {
@@ -742,7 +742,7 @@ void do_autonomous_red_two_skyrise() {
 
 }
 
-void do_autonomous_blue_NO_skyrise() {
+void do_autonomous_blue_cube_only() {
 	move_slide_to_position(1500);
 	move('b', 100, 127);
 	move('r', 400, 127);
@@ -758,8 +758,20 @@ void do_autonomous_blue_NO_skyrise() {
 	move_arm_to_position(0);
 }
 
-void do_autonomous_red_NO_skyrise() {
-	move_slide_to_position(1500);
+void do_autonomous_red_cube_only() {
+	move('r', 100, 127);
+	move_slide_to_position(1660);
+	move('b', 1360, 127);
+	wait_for_slide_done();
+	move_arm_to_position(410);
+	wait_for_arm_done();
+	turn('a', 1270, 100);
+	move_slide_to_position(700);
+	wait_for_slide_done();
+	move('b', 300, 127);
+
+
+ /*move_slide_to_position(1500);
 	move('b', 100, 127);
 	move('l', 400, 127);
 	move_arm_to_position(1390);
@@ -772,7 +784,7 @@ void do_autonomous_red_NO_skyrise() {
 	move('b', 520, 127);
 
 	move_slide_to_position(0);
-	move_arm_to_position(0);
+	move_arm_to_position(0);*/
 }
 ///////////////////////////////
 //
@@ -976,13 +988,13 @@ LcdAutonomousSet( int value, bool select = false )
 		displayLCDString(0, 0, "RED Skyrise");
 		break;
 	case    1:
-		displayLCDString(0, 0, "RED NO");
+		displayLCDString(0, 0, "RED CUBE Only");
 		break;
 	case    2:
 		displayLCDString(0, 0, "BLUE Skyrise");
 		break;
 	case    3:
-		displayLCDString(0, 0, "BLUE NO");
+		displayLCDString(0, 0, "BLUE CUBE Only");
 		break;
 	default:
 		displayLCDString(0, 0, "Unknown");
@@ -1077,10 +1089,10 @@ void pre_auton()
 // You must modify the code to add your own robot specific commands here.
 //
 /////////////////////////////////////////////////////////////////////////////////////////
-#define RED_SKYRISE 	0
-#define RED_NO 				1
-#define BLUE_SKYRISE 	2
-#define BLUE_NO 			3
+#define RED_SKYRISE 	 0
+#define RED_CUBE_ONLY	 1
+#define BLUE_SKYRISE 	 2
+#define BLUE_CUBE_ONLY 3
 
 
 task autonomous()
@@ -1095,13 +1107,13 @@ task autonomous()
 		do_autonomous_red_skyrise();
 		break;
 	case    1:
-		do_autonomous_red_NO_skyrise();
+		do_autonomous_red_cube_only();
 		break;
 	case    2:
 		do_autonomous_blue_skyrise();
 		break;
 	case    3:
-		do_autonomous_blue_NO_skyrise();
+		do_autonomous_blue_cube_only();
 		break;
 	default:
 		break;
