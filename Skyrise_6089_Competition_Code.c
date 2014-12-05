@@ -47,22 +47,35 @@
 #define FOUR_BAR_MOTOR_INDEX  		fourBarMotor
 #define SLIDE_MOTOR_SCALE     		1
 #define FOUR_BAR_MOTOR_SCALE 			-1
-#define SLIDE_MOTOR_DRIVE_MAX			127.0
-#define SLIDE_MOTOR_DRIVE_MIN			(-80.0)
-#define FOUR_BAR_MOTOR_DRIVE_MAX	127.0
-#define FOUR_BAR_MOTOR_DRIVE_MIN 	(-80.0)
+#define SLIDE_MOTOR_MAX			127.0
+#define SLIDE_MOTOR_MIN			(-80.0)
+#define FOUR_BAR_MOTOR_MAX	127.0
+#define FOUR_BAR_MONOR_MIN 	(-80.0)
 #define MAX_SLIDE_MOTOR_POWER_DELTA			30
 #define MAX_FOUR_BAR_MOTOR_POWER_DELTA	30
 // Absolute value of joystick below this number is considered neutral
 #define JOYSTICK_MAX_NEUTRAL 			15
 #define SLIDE_INTEGRAL_LIMIT  		800
 #define FOUR_BAR_INTEGRAL_LIMIT 	0
-#define NUM_PID_CONTROLS 					3
+#define NUM_PID_CONTROLS 					4
 #define LEFT_LIFT_PID_INDEX 			0
 #define RIGHT_LIFT_PID_INDEX 			1
 #define FOUR_BAR_PID_INDEX 				2
 
 #define SLOW_MODE_FACTOR					0.35
+
+// Parameters for Drive PID
+#define DRIVE_PID_INDEX			3
+
+#define DRIVE_MOTOR_SCALE		1
+
+#define DRIVE_MOTOR_MAX						127
+#define DRIVE_MOTOR_MIN						-127
+#define DRIVE_INTEGRAL_LIMIT			8000
+#define DRIVE_SENSOR_SCALE		1
+#define DRIVE_MOTOR_POWER_DELTA		127
+
+#define DRIVE_SENSOR_THRESHOLD 		20 // How close to target we need to be to consider that we're there
 
 // This is the preset height for picking up the skyrise section at the highest point (to deliver the first one)
 #define SKYRISE_MIDDLE_INTAKE_HEIGHT 430
@@ -71,7 +84,18 @@
 #define USER_CONTROL_LOOP_TIME	50 // Milliseconds
 #define PID_LOOP_TIME						25
 
-#define debug_autonomous()
+#define MAX_COUNT 20
+#define MIN_CHANGE_PER_LOOP 3
+
+#define FL	0
+#define BL	1
+#define FR	2
+#define BR	3
+
+
+int motor_index[4];
+int motor_direction[4];
+
 
 // Structure to store PID parameters -- note we have 3; one for each slide and one for the Arm
 typedef struct {
@@ -80,6 +104,8 @@ typedef struct {
 	float Kp;
 	float Ki;
 	float Kd;
+
+	float K_value_scale; // Used ONLY by Drive PID
 
 	int pid_sensor_index;
 	float pid_sensor_scale;
@@ -110,7 +136,7 @@ pidTaskParameters pid[ NUM_PID_CONTROLS ];
 
 // These could be constants but leaving
 // as variables allows them to be modified in the debugger "live"
-float  slide_Kp = 1.5;
+float  slide_Kp = 1.8;
 float  slide_Ki = 0.01;
 float  slide_Kd = 0;
 
@@ -118,11 +144,15 @@ float  fourBar_Kp = 1.2;
 float  fourBar_Ki = 0.00;
 float  fourBar_Kd = 0.5;
 
+float drive_Kp = 0.9;
+float drive_Ki = 0;
+float drive_Kd = 1.5;
+
 #ifdef DEBUG_IME
 float max_mismatch = 0.0;
 #endif
 
-volatile int motor_index[4];
+
 
 /*-----------------------------------------------------------------------------*/
 /*                                                                             */
@@ -153,16 +183,17 @@ task PidController()
 		pid[i].pid_sensor_previous_value = 0;
 		pid[i].previous_speed = 0;
 		pid[i].pid_sensor_previous_value = 0;
+		pid[i].K_value_scale = 1;
 		pid[i].pid_active = true;
 	}
 
 	j = 0;
 
- 	//int pid_loop_count = 0;
+	//int pid_loop_count = 0;
 
 	while( true ) {
 
-  //writeDebugStreamLine("PID Loop count: %d", pid_loop_count++);
+		//writeDebugStreamLine("PID Loop count: %d", pid_loop_count++);
 
 
 
@@ -173,12 +204,15 @@ task PidController()
 				continue;
 
 			// Read the sensor value and scale
-			pidSensorCurrentValue = SensorValue[ pid[i].pid_sensor_index] * pid[i].pid_sensor_scale;
+			if (i != DRIVE_PID_INDEX) {
+				pidSensorCurrentValue = SensorValue[ pid[i].pid_sensor_index] * pid[i].pid_sensor_scale;
+			} else { // For Drive PID Index
+				pidSensorCurrentValue = (nMotorEncoder[backLeft] * motor_direction[BL] + nMotorEncoder[backRight]*motor_direction[BR])/2.0;
+			}
 
 			// calculate error
 			pidError = pid[i].pidRequestedValue - pidSensorCurrentValue;
 
-			// DEBUG if (pidError > 400) writeDebugStreamLine("PID Error is %f", pidError);
 
 			// integral - if Ki is not 0
 			if( pid[i].Ki != 0 )
@@ -194,11 +228,11 @@ task PidController()
 				pid[i].errorIntegral = 0;
 
 			// calculate the derivative
-			pidDerivative =  pid[i].previous_error - pidError;
+			pidDerivative =  pidError - pid[i].previous_error;
 			pid[i].previous_error  = pidError;
 
 			// calculate drive
-			pidDrive = (pid[i].Kp * pidError) + (pid[i].Ki * pid[i].errorIntegral) + (pid[i].Kd * pidDerivative);
+			pidDrive = pid[i].K_value_scale * (pid[i].Kp * pidError) + (pid[i].Ki * pid[i].errorIntegral) + (pid[i].Kd * pidDerivative);
 
 			// limit PWM to user supplied range (usually -127 to +127)
 			if( pidDrive >  pid[i].max_motor_power )
@@ -216,17 +250,20 @@ task PidController()
 			}
 			pid[i].previous_motor_power = pidDrive;
 
-			// send to motor
-			motor[ pid[i].pid_motor_index ] = pidDrive * pid[i].pid_motor_scale;
+			// send to motor (SORRY -- MAJOR KLUDGE FOLLOWS FOR DRIVE MOTORS!!!
+			if (i != DRIVE_PID_INDEX) {
+				motor[ pid[i].pid_motor_index ] = pidDrive * pid[i].pid_motor_scale;
+			} else {
 
-			// DEBUG START
-			// calculate (smoothed) speed
-			// speed = (pidSensorCurrentValue - pid[i].pid_sensor_previous_value)/loop_time;
-			// speed = (speed + pid[i].previous_speed)/2.0;
-			// pid[i].previous_speed = speed;
-			// pid[i].pid_sensor_previous_value = pidSensorCurrentValue;
-			// if (i == 0 /*&& abs(speed) > .1 && (pidSensorCurrentValue > 1050 || pidSensorCurrentValue < 10)*/)
-			// writeDebugStreamLine("Speed: %f time: %f sensor %d", pid[0].previous_speed*1000.0/6.0, time1[T1], pidSensorCurrentValue);
+			  //writeDebugStreamLine("pidDrive: %f pidError: %f  PID: %f %f %f", pidDrive, pidError,
+			  //pid[i].K_value_scale*pid[i].Kp * pidError, pid[i].K_value_scale*pid[i].Ki * pid[i].errorIntegral, pid[i].K_value_scale*pid[i].Kd * pidDerivative);
+				motor[motor_index[FL]] = motor_direction[FL]*pidDrive;
+				motor[motor_index[BL]] = motor_direction[BL]*pidDrive;
+
+				motor[motor_index[FR]] = motor_direction[FR]*pidDrive;
+				motor[motor_index[BR]] = motor_direction[BR]*pidDrive;
+			}
+
 
 #ifdef DEBUG_PID
 			pid[i].pid_sensor_previous_value = pidSensorCurrentValue;
@@ -354,31 +391,6 @@ void init_lift(){
 // *** Start of Autonomous Functions *** //
 // ***                               *** //
 
-#define AUTO_MAX_DELTA 10
-#define AUTO_LOOP_TIME 15
-#define AUTO_LOOP_TIME_SLOW 50
-
-int power_ramp(int current, int target) {
-	if (target > current) {
-		current += AUTO_MAX_DELTA;
-		if (current > target)
-			return target;
-		else
-			return current;
-		} else {
-		current -= AUTO_MAX_DELTA;
-		if (current < target)
-			return target;
-		else
-			return current;
-	}
-}
-
-
-
-volatile long ime1, ime2;
-volatile long initial_ime1, initial_ime2;
-
 #ifdef DEBUG_IME
 
 #define IME_HISTORY_LENGTH 10
@@ -418,129 +430,106 @@ ime2_index = (ime2_index != IME_HISTORY_LENGTH) ? ime2_index : 0;
 }
 #endif DEBUG_IME
 
-void wait_for_move_done(int dist) {
+void wait_for_move_done(int target_dist) {
 	// Wait until target values are reached
 
-	int i;
+	float ime1, ime2, dist1, dist2;
+
+	float old_dist1, old_dist2;
+	int count;
+
+
+  count = 0;
+  old_dist1 = old_dist2 = 5000; // Some "large value
 	do {
-		ime1 = nMotorEncoder(backRight);
-		ime2 = nMotorEncoder(backLeft);
+		ime1 = nMotorEncoder(backLeft);
+		ime2 = nMotorEncoder(backRight);
 #ifdef DEBUG_IME
 		check_ime();
 #endif // DEBUG_IME
-		wait1Msec(AUTO_LOOP_TIME_SLOW);
-	} while ( (abs(ime1 - initial_ime1) + abs(ime2 - initial_ime2))/2 < abs(dist));
+		wait1Msec(PID_LOOP_TIME);
+		dist1 = abs(ime1);
+		dist2 = abs(ime2);
 
-	// Stop motors
-	for(i=0; i < 4; i++) {
-		motor[motor_index[i]] = 0;
-	}
+		if (abs(dist1 - old_dist1) < MIN_CHANGE_PER_LOOP && abs(dist2 - old_dist2) < MIN_CHANGE_PER_LOOP)
+			count++;
+		else
+			count = 0;
+	  if (count == MAX_COUNT)
+	  	return;
+
+		old_dist1 = dist1;
+		old_dist2 = dist2;
+
+	} while (abs((dist1 + dist2)/2 - abs(target_dist)) > DRIVE_SENSOR_THRESHOLD);
 }
 
 void start_move(char dir, int dist, int power)
 {
-	int X1, Y1, X2;
 
-
-	// Initial value of motor power
-
-	X1 = 0;
-	Y1 = 0;
-	X2 = 0;
-
-	// Get IME values before the start of the movement
-	ime1 = initial_ime1 = nMotorEncoder(backRight);
-	ime2 = initial_ime2 = nMotorEncoder(backLeft);
-
-
-#ifdef DEBUG_IME
-	check_ime();
-#endif // DEBUG_IME
-
-	// Set target values of IME's
-	float temp;
-	switch(dir){
+switch(dir){
 	case 'f':
-		Y1 = power;
+		motor_direction[FR] = 1;
+		motor_direction[BR] = 1;
+		motor_direction[FL] = 1;
+		motor_direction[BL] = 1;
+		pid[DRIVE_PID_INDEX].K_value_scale = 1.0;
+
 		break;
 	case 'b':
-		Y1 = -power;
+		motor_direction[FR] = -1;
+		motor_direction[BR] = -1;
+		motor_direction[FL] = -1;
+		motor_direction[BL] = -1;
+		pid[DRIVE_PID_INDEX].K_value_scale = 1.0;
+
 		break;
 	case 'r':
-		X1 = power;
+		motor_direction[FR] = -1;
+		motor_direction[BR] = 1;
+		motor_direction[FL] = 1;
+		motor_direction[BL] = -1;
+		pid[DRIVE_PID_INDEX].K_value_scale = 3;
+
 		break;
 	case 'l':
-		X1 = -power;
+		motor_direction[FR] = 1;
+		motor_direction[BR] = -1;
+		motor_direction[FL] = -1;
+		motor_direction[BL] = 1;
+		pid[DRIVE_PID_INDEX].K_value_scale = 3;
+
 		break;
 	case 'c':
-		X2 = power;
+		motor_direction[FR] = -1;
+		motor_direction[BR] = -1;
+		motor_direction[FL] = 1;
+		motor_direction[BL] = 1;
+		pid[DRIVE_PID_INDEX].K_value_scale = 1.5;
+
 		break;
 	case 'a':
-		X2 = -power;
+		motor_direction[FR] = 1;
+		motor_direction[BR] = 1;
+		motor_direction[FL] = -1;
+		motor_direction[BL] = -1;
+		pid[DRIVE_PID_INDEX].K_value_scale = 1.5;
+
 		break;
-	case 'z': // diagonal back left
-		X1 = -power;
-		temp = -power*100/127;
-		Y1 = temp;
-		writeDebugStreamLine("X1: %d", X1);
-		writeDebugStreamLine("X1: %d", Y1);
-		break;
-	case 'q': // diagonal back right
-		X1 = power;
-		temp = -power*100/127;
-		Y1 = temp;
 	}
 
-#define FR 0
-#define BR 1
-#define FL 2
-#define BL 3
-	int target_power[4];
-	int current_power[4];
-	bool target_power_reached[4];
-	int i;
+	pid[DRIVE_PID_INDEX].max_motor_power = power;
 
+	pid[DRIVE_PID_INDEX].min_motor_power = -power;
 
-	target_power[FR] = Y1 - X2 - X1;
-	target_power[BR] = Y1 - X2 + X1;
-	target_power[FL] = Y1 + X2 + X1;
-	target_power[BL] = Y1 + X2 - X1;
+	pid[DRIVE_PID_INDEX].pidRequestedValue = dist;
+
+	resetMotorEncoder(backLeft);
+	resetMotorEncoder(backRight);
 
 
 
 
-	for(i=0; i < 4; i++) {
-		current_power[i] = 0;
-		target_power_reached[i] = false;
-	}
-
-	while(!target_power_reached[FR] ||
-		!target_power_reached[BR] ||
-	!target_power_reached[FL] ||
-	!target_power_reached[BL] ) {
-		for (i=0; i < 4; i++) {
-			current_power[i] = power_ramp(current_power[i], target_power[i]);
-			motor[motor_index[i]] = current_power[i];
-			if (abs(current_power[i]) >= abs(target_power[i])) {
-				target_power_reached[i] = true;
-			}
-		}
-
-		ime1 = nMotorEncoder(backRight);
-		ime2 = nMotorEncoder(backLeft);
-#ifdef DEBUG_IME
-		check_ime();
-#endif // DEBUG_IME
-
-		if ((abs(ime1 - initial_ime1) + abs(ime2 - initial_ime2))/2 > abs(dist))
-		{
-			//	writeDebugStreamLine("ime1Delta: %f ime2Delta: %f", abs(ime1 - initial_ime1), abs(ime2 - initial_ime2));
-			break;
-		}
-
-
-		wait1Msec(AUTO_LOOP_TIME);
-	}
 }
 
 void move(char dir, int dist, int power){
@@ -550,6 +539,7 @@ void move(char dir, int dist, int power){
 
 void turn(char dir, int angle, int power) {
 	move(dir, angle, power);
+	wait_for_move_done(angle);
 }
 
 
@@ -569,7 +559,11 @@ void move_arm_to_position(int position) {
 
 void wait_for_arm_done() {
 	float pidSensorCurrentValue;
-	float pidError;
+	float pidError, old_pidError;
+	int count;
+
+	count = 0;
+	old_pidError = 5000; // Some "large" value
 
 	do {
 		// Read the sensor value and scale
@@ -577,14 +571,29 @@ void wait_for_arm_done() {
 
 		// calculate error
 		pidError = pid[2].pidRequestedValue - pidSensorCurrentValue;
-		wait1Msec(AUTO_LOOP_TIME_SLOW);
+
+		if (abs(old_pidError - pidError) < MIN_CHANGE_PER_LOOP)
+			count++;
+		else
+			count = 0;
+	  if (count == MAX_COUNT)
+	  	return;
+
+	  old_pidError = pidError;
+
+		wait1Msec(PID_LOOP_TIME);
 	} while (abs (pidError) > SLIDE_TARGET_THRESHOLD);
 }
 
 void wait_for_slide_done() {
 
 	float pidSensorCurrentValue;
-	float pidError;
+	float pidError, old_pidError;
+	int count;
+
+	count = 0;
+	old_pidError = 5000; // Some "large" value
+
 
 	do {
 		// Read the sensor value and scale
@@ -597,10 +606,18 @@ void wait_for_slide_done() {
 
 		pidError += pid[RIGHT_LIFT_PID_INDEX].pidRequestedValue - pidSensorCurrentValue;
 
-	  pidError = pidError/2.0;
+		pidError = pidError/2.0;
 
+		if (abs(old_pidError - pidError) < MIN_CHANGE_PER_LOOP)
+			count++;
+		else
+			count = 0;
+	  if (count == MAX_COUNT)
+	  	return;
 
-		wait1Msec(AUTO_LOOP_TIME_SLOW);
+		old_pidError  = pidError;
+
+		wait1Msec(PID_LOOP_TIME);
 	} while (abs (pidError) > SLIDE_TARGET_THRESHOLD);
 }
 
@@ -609,82 +626,78 @@ void do_autonomous_red_skyrise() {
 	// Getting the Skyrise section
 
 	//Step 1: Move back one tile
-	start_move('b', 150, 127);
-	wait_for_move_done(150);
-	writeDebugStreamLine("Step 1 Done");
+	start_move('b', 250, 127);
 
 	//Step 2: Raise slide to align with skyrise
 	move_slide_to_position(600);
-	writeDebugStreamLine("Step 2a Done");
+	wait_for_move_done(250);
+	move('l', 60, 127);
 	wait_for_slide_done();
-	writeDebugStreamLine("Step 2b Done");
 
 	move_slide_to_position(435);
+	wait_for_slide_done();
 
 	//Step 3: Move forward to get skyrise
-	move('f', 200, 80);
-	writeDebugStreamLine("Step 3 Done");
-	wait1Msec(500);
+	move('f', 280, 80);
+	wait1Msec(250);
+
 
 	//Step 4: Raise slide to take out skyrise
 	move_slide_to_position(950);
 	wait_for_slide_done();
-	writeDebugStreamLine("Step 4 Done");
 
+	move('b', 25, 127);
+	move('l', 45, 127);
 
+	start_move('b', 925, 120);
+	move_slide_to_position(450);
+	wait_for_move_done(925);
 
-
-	//Step 5: Move sideways to adjust for cube
-	move('l', 54, 127);
-	writeDebugStreamLine("Step 5 Done");
-
-
-	//Step 5: Move back
-	start_move('b', 572, 120);
-	wait1Msec(100);
-	move_slide_to_position(420);
-	wait_for_move_done(580);
 	wait_for_slide_done();
 
-	move('b', 66, 127);
+	move('b', 148, 115);
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
 
-
-	move('b', 90, 127);
-
-
+	move('b', 200, 55);
 
 	move_slide_to_position(400);
 	wait_for_slide_done();
 	move_slide_to_position(1250);
 
+		move('f', 440, 127);
+	move('r', 175, 127);
+	turn('c', 1120, 127);
+	move('b', 270, 127);
+
+	move_slide_to_position(0);
+	wait_for_slide_done();
+	move('f', 235, 127);
 
 
-	move('f', 1090, 127);
+	/*move('f', 1050, 127);
 
-	move('l', 730, 127);
+	move('l', 805, 127);
 
-	move('b', 60, 127);
+	move('b', 115, 127);
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
 
-	move('f', 90, 127);
+	move('f', 165, 127);*/
 
 }
 
+
+#ifdef TWO_SKYRISE
 void do_autonomous_red_two_skyrise() {
 
 	// Getting the Skyrise section
-	int wait_time_between_steps = 10;
 
 	// Step 1: Move slide up
 	move_slide_to_position(450);
 	wait_for_slide_done();
-	debug_autonomous();
-
 
 	// Step 2: Move Forward to Grab Skyrise
 	start_move('f', 100, 127);
@@ -742,31 +755,34 @@ void do_autonomous_red_two_skyrise() {
 
 }
 
+#endif // TWO_SKYRISE
+
 void do_autonomous_blue_cube_only() {
-	move('l', 100, 127);
+	move('l', 230, 127);
 	move_slide_to_position(1660);
-	move('b', 1400, 127);
+	move('b', 1650, 127);
 	wait_for_slide_done();
 	move_arm_to_position(410);
 	wait_for_arm_done();
-	turn('c', 1340, 100);
+	turn('c', 1405, 100);
 	move_slide_to_position(700);
 	wait_for_slide_done();
-	move('b', 300, 127);
+	move('b', 400, 127);
 
 }
 
 void do_autonomous_red_cube_only() {
-	move('r', 100, 127);
-	move_slide_to_position(1660);
-	move('b', 1360, 127);
+	move('r', 280, 127);
+	move_slide_to_position(1710);
+	move('b', 1650, 127);
 	wait_for_slide_done();
+
 	move_arm_to_position(410);
 	wait_for_arm_done();
-	turn('a', 1270, 100);
+	turn('a', 1405, 100);
 	move_slide_to_position(700);
 	wait_for_slide_done();
-	move('b', 300, 127);
+	move('b', 400, 127);
 
 }
 ///////////////////////////////
@@ -774,88 +790,82 @@ void do_autonomous_red_cube_only() {
 // BLUE SKYRISE AUTONOMOUS
 //
 ///////////////////////////////
-void do_autonomous_blue_skyrise() {
 
+
+
+void do_autonomous_blue_skyrise() {
 
 	// Getting the Skyrise section
 
 	//Step 1: Move back one tile
-	move('b', 150, 127);
-	writeDebugStreamLine("Step 1 Done");
+	start_move('b', 250, 127);
 
 
 	//Step 2: Raise slide to align with skyrise
 	move_slide_to_position(600);
-
-	wait_for_slide_done();
-
-	move_slide_to_position(430);
-	move('r', 24, 127);
-	//wait1Msec(150);
-
-	//Step 3: Move forward to get skyrise
-	move('f', 202, 80);
-	wait1Msec(150);
-	writeDebugStreamLine("Step 3 Done");
-
-	//Step 4: Raise slide to take out skyrise
-	move_slide_to_position(1000);
-	wait_for_slide_done();
-	writeDebugStreamLine("Step 4 Done");
-
-
-
+	wait_for_move_done(250);
 
 	move('r', 70, 127);
-	float wall_ime1 = nMotorEncoder(backRight);
-	float wall_ime2	= nMotorEncoder(backLeft);
-
-	//Step 5: Move back
-	start_move('b', 600, 127);
-	wait1Msec(100);
-	move_slide_to_position(420);
-	wait_for_move_done(600);
 	wait_for_slide_done();
 
-	writeDebugStreamLine("Dist1: %f	 Dist1: %f	Avg: %f ", abs(nMotorEncoder(backRight)-wall_ime1), abs(nMotorEncoder(backLeft)-wall_ime2),(abs(nMotorEncoder(backRight)-wall_ime1)
-	+ abs(nMotorEncoder(backLeft)-wall_ime2))/2);
+	move_slide_to_position(435);
+	wait_for_slide_done();
 
-	move('b', 57, 127);
+	//Step 3: Move forward to get skyrise
+	move('f', 280, 80);
+	wait1Msec(250);
 
-  writeDebugStreamLine("Dist2: %f	 Dist2: %f	Avg: %f", abs(nMotorEncoder(backRight)-wall_ime1), abs(nMotorEncoder(backLeft)-wall_ime2),(abs(nMotorEncoder(backRight)-wall_ime1)+ abs(nMotorEncoder(backLeft)-wall_ime2))/2);
+
+	//Step 4: Raise slide to take out skyrise
+	move_slide_to_position(950);
+	wait_for_slide_done();
+	move('b', 25, 127);
+  move('r', 95, 127);
+	start_move('b', 950, 120);
+
+	move_slide_to_position(450);
+	wait_for_move_done(950);
+
+	wait_for_slide_done();
+
+	move('b', 148, 115);
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
 
-	writeDebugStreamLine("Dist3: %f	 Dist3: %f	Avg: %f", abs(nMotorEncoder(backRight)-wall_ime1), abs(nMotorEncoder(backLeft)-wall_ime2),(abs(nMotorEncoder(backRight)-wall_ime1)+ abs(nMotorEncoder(backLeft)-wall_ime2))/2);
 
-	move('b', 90, 127);
-
-	writeDebugStreamLine("Dist4: %f	 Dist4: %f	Avg: %f", abs(nMotorEncoder(backRight)-wall_ime1), abs(nMotorEncoder(backLeft)-wall_ime2),(abs(nMotorEncoder(backRight)-wall_ime1)+ abs(nMotorEncoder(backLeft)-wall_ime2))/2);
-
-
-
-
-
-
+	move('b', 200, 55);
 
 	move_slide_to_position(400);
 	wait_for_slide_done();
 	move_slide_to_position(1250);
 
+	move('f', 440, 127);
+	move('l', 175, 127);
+	turn('a', 1120, 127);
+	move('b', 270, 127);
 
-	move('f', 1100, 127);
+	move_slide_to_position(0);
+	wait_for_slide_done();
+	move('f', 235, 127);
 
-	move('r', 730, 127);
 
-	move('b', 35, 127);
+/*
+	move('f', 1150, 127);
 
+	move('r', 805, 127);
+
+	move('b', 115, 127);
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
 
-	move('f', 75, 127);
+	move('f', 165, 127); */
 
+}
+
+void do_nothing() {
+	// Like it says!!
 }
 
 
@@ -871,13 +881,12 @@ void pid_init() {
 	pid[LEFT_LIFT_PID_INDEX].pid_motor_index = LEFT_SLIDE_MOTOR_INDEX;
 	pid[LEFT_LIFT_PID_INDEX].pid_motor_scale = SLIDE_MOTOR_SCALE;
 
-	pid[LEFT_LIFT_PID_INDEX].max_motor_power = SLIDE_MOTOR_DRIVE_MAX;
-	pid[LEFT_LIFT_PID_INDEX].min_motor_power = SLIDE_MOTOR_DRIVE_MIN;
+	pid[LEFT_LIFT_PID_INDEX].max_motor_power = SLIDE_MOTOR_MAX;
+	pid[LEFT_LIFT_PID_INDEX].min_motor_power = SLIDE_MOTOR_MIN;
 	pid[LEFT_LIFT_PID_INDEX].max_motor_power_delta = MAX_SLIDE_MOTOR_POWER_DELTA;
 
 	pid[LEFT_LIFT_PID_INDEX].pid_integral_limit = SLIDE_INTEGRAL_LIMIT;
 
-	pid[LEFT_LIFT_PID_INDEX].max_motor_power_delta = MAX_SLIDE_MOTOR_POWER_DELTA;
 	pid[LEFT_LIFT_PID_INDEX].max_height = SLIDE_MAX_HEIGHT;
 	pid[LEFT_LIFT_PID_INDEX].min_height = 0;
 
@@ -892,13 +901,12 @@ void pid_init() {
 	pid[RIGHT_LIFT_PID_INDEX].pid_motor_index = RIGHT_SLIDE_MOTOR_INDEX;
 	pid[RIGHT_LIFT_PID_INDEX].pid_motor_scale = SLIDE_MOTOR_SCALE;
 
-	pid[RIGHT_LIFT_PID_INDEX].max_motor_power = SLIDE_MOTOR_DRIVE_MAX;
-	pid[RIGHT_LIFT_PID_INDEX].min_motor_power = SLIDE_MOTOR_DRIVE_MIN;
+	pid[RIGHT_LIFT_PID_INDEX].max_motor_power = SLIDE_MOTOR_MAX;
+	pid[RIGHT_LIFT_PID_INDEX].min_motor_power = SLIDE_MOTOR_MIN;
 	pid[RIGHT_LIFT_PID_INDEX].max_motor_power_delta = MAX_SLIDE_MOTOR_POWER_DELTA;
 
 	pid[RIGHT_LIFT_PID_INDEX].pid_integral_limit = SLIDE_INTEGRAL_LIMIT;
 
-	pid[RIGHT_LIFT_PID_INDEX].max_motor_power_delta = MAX_SLIDE_MOTOR_POWER_DELTA;
 	pid[RIGHT_LIFT_PID_INDEX].max_height = SLIDE_MAX_HEIGHT;
 	pid[RIGHT_LIFT_PID_INDEX].min_height = 35;
 
@@ -912,16 +920,34 @@ void pid_init() {
 	pid[FOUR_BAR_PID_INDEX].pid_motor_index = FOUR_BAR_MOTOR_INDEX;
 	pid[FOUR_BAR_PID_INDEX].pid_motor_scale = FOUR_BAR_MOTOR_SCALE;
 
-	pid[FOUR_BAR_PID_INDEX].max_motor_power = FOUR_BAR_MOTOR_DRIVE_MAX;
-	pid[FOUR_BAR_PID_INDEX].min_motor_power = FOUR_BAR_MOTOR_DRIVE_MIN;
+	pid[FOUR_BAR_PID_INDEX].max_motor_power = FOUR_BAR_MOTOR_MAX;
+	pid[FOUR_BAR_PID_INDEX].min_motor_power = FOUR_BAR_MONOR_MIN;
 	pid[FOUR_BAR_PID_INDEX].max_motor_power_delta = MAX_FOUR_BAR_MOTOR_POWER_DELTA;
 
 	pid[FOUR_BAR_PID_INDEX].pid_integral_limit = FOUR_BAR_INTEGRAL_LIMIT;
 
-	pid[FOUR_BAR_PID_INDEX].max_motor_power_delta = MAX_FOUR_BAR_MOTOR_POWER_DELTA;
-
 	pid[FOUR_BAR_PID_INDEX].max_height = FOUR_BAR_MAX_HEIGHT;
 	pid[FOUR_BAR_PID_INDEX].min_height = 0;
+
+
+
+	pid[DRIVE_PID_INDEX].Kp = drive_Kp;
+	pid[DRIVE_PID_INDEX].Ki = drive_Ki;
+	pid[DRIVE_PID_INDEX].Kd = drive_Kd;
+
+	pid[DRIVE_PID_INDEX].pid_sensor_scale = DRIVE_SENSOR_SCALE;
+
+	pid[DRIVE_PID_INDEX].max_motor_power = DRIVE_MOTOR_MAX;
+	pid[DRIVE_PID_INDEX].min_motor_power = DRIVE_MOTOR_MIN;
+	pid[DRIVE_PID_INDEX].max_motor_power_delta = DRIVE_MOTOR_POWER_DELTA;
+
+	pid[DRIVE_PID_INDEX].pid_integral_limit = DRIVE_INTEGRAL_LIMIT;
+
+
+	// Initialize Sensors
+	resetMotorEncoder(backLeft);
+	resetMotorEncoder(backRight);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -939,7 +965,7 @@ static int MyAutonomous = 0;
 /*-----------------------------------------------------------------------------*/
 
 // max number of auton choices
-#define MAX_CHOICE  4
+#define MAX_CHOICE  5
 
 void
 LcdAutonomousSet( int value, bool select = false )
@@ -978,6 +1004,9 @@ LcdAutonomousSet( int value, bool select = false )
 		break;
 	case    3:
 		displayLCDString(0, 0, "BLUE CUBE Only");
+		break;
+	case		4:
+		displayLCDString(0, 0, "DO NOTHING");
 		break;
 	default:
 		displayLCDString(0, 0, "Unknown");
@@ -1098,6 +1127,9 @@ task autonomous()
 	case    3:
 		do_autonomous_blue_cube_only();
 		break;
+	case		4:
+		do_nothing();
+		break;
 	default:
 		break;
 	}
@@ -1126,7 +1158,12 @@ task usercontrol()
 	// Moved to start of actual autonomous init_lift();
 
 	// start the PID task
-	startTask( PidController );
+	startTask( PidController, 6 );
+	wait1Msec(100);
+
+	// For User Control we don't use PID drive functions
+	pid[DRIVE_PID_INDEX].pid_active = false;
+
 
 
 	// use joystick to modify the requested position
@@ -1161,7 +1198,8 @@ task usercontrol()
 			pidRequestedValue = SKYRISE_MIDDLE_INTAKE_HEIGHT;
 			} else if (vexRT[Btn6DXmtr2]) {
 			pidRequestedValue = SKYRISE_LOW_INTAKE_HEIGHT;
-
+			} else if (vexRT[Btn5DXmtr2]) {
+			pidRequestedValue = 140; // Slide Height to pick up second cube
 			} else {
 			// joystick control of slide arms
 
@@ -1177,6 +1215,8 @@ task usercontrol()
 				if (pidRequestedValue <= pid[LEFT_LIFT_PID_INDEX].min_height) {
 					pidRequestedValue = pid[LEFT_LIFT_PID_INDEX].min_height;
 				}
+			} else {
+					pidRequestedValue = (SensorValue[RIGHT_SLIDE_SENSOR_INDEX]+SensorValue[LEFT_SLIDE_SENSOR_INDEX])/2; // Stay where you are currently
 			}
 
 			pid[LEFT_LIFT_PID_INDEX].pidRequestedValue = pidRequestedValue;
