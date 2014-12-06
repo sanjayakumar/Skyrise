@@ -206,7 +206,7 @@ task PidController()
 			// Read the sensor value and scale
 			if (i != DRIVE_PID_INDEX) {
 				pidSensorCurrentValue = SensorValue[ pid[i].pid_sensor_index] * pid[i].pid_sensor_scale;
-			} else { // For Drive PID Index
+				} else { // For Drive PID Index
 				pidSensorCurrentValue = (nMotorEncoder[backLeft] * motor_direction[BL] + nMotorEncoder[backRight]*motor_direction[BR])/2.0;
 			}
 
@@ -253,10 +253,10 @@ task PidController()
 			// send to motor (SORRY -- MAJOR KLUDGE FOLLOWS FOR DRIVE MOTORS!!!
 			if (i != DRIVE_PID_INDEX) {
 				motor[ pid[i].pid_motor_index ] = pidDrive * pid[i].pid_motor_scale;
-			} else {
+				} else {
 
-			  //writeDebugStreamLine("pidDrive: %f pidError: %f  PID: %f %f %f", pidDrive, pidError,
-			  //pid[i].K_value_scale*pid[i].Kp * pidError, pid[i].K_value_scale*pid[i].Ki * pid[i].errorIntegral, pid[i].K_value_scale*pid[i].Kd * pidDerivative);
+				//writeDebugStreamLine("pidDrive: %f pidError: %f  PID: %f %f %f", pidDrive, pidError,
+				//pid[i].K_value_scale*pid[i].Kp * pidError, pid[i].K_value_scale*pid[i].Ki * pid[i].errorIntegral, pid[i].K_value_scale*pid[i].Kd * pidDerivative);
 				motor[motor_index[FL]] = motor_direction[FL]*pidDrive;
 				motor[motor_index[BL]] = motor_direction[BL]*pidDrive;
 
@@ -439,8 +439,8 @@ void wait_for_move_done(int target_dist) {
 	int count;
 
 
-  count = 0;
-  old_dist1 = old_dist2 = 5000; // Some "large value
+	count = 0;
+	old_dist1 = old_dist2 = 5000; // Some "large value
 	do {
 		ime1 = nMotorEncoder(backLeft);
 		ime2 = nMotorEncoder(backRight);
@@ -455,8 +455,8 @@ void wait_for_move_done(int target_dist) {
 			count++;
 		else
 			count = 0;
-	  if (count == MAX_COUNT)
-	  	return;
+		if (count == MAX_COUNT)
+			return;
 
 		old_dist1 = dist1;
 		old_dist2 = dist2;
@@ -467,7 +467,7 @@ void wait_for_move_done(int target_dist) {
 void start_move(char dir, int dist, int power)
 {
 
-switch(dir){
+	switch(dir){
 	case 'f':
 		motor_direction[FR] = 1;
 		motor_direction[BR] = 1;
@@ -576,10 +576,10 @@ void wait_for_arm_done() {
 			count++;
 		else
 			count = 0;
-	  if (count == MAX_COUNT)
-	  	return;
+		if (count == MAX_COUNT)
+			return;
 
-	  old_pidError = pidError;
+		old_pidError = pidError;
 
 		wait1Msec(PID_LOOP_TIME);
 	} while (abs (pidError) > SLIDE_TARGET_THRESHOLD);
@@ -612,8 +612,8 @@ void wait_for_slide_done() {
 			count++;
 		else
 			count = 0;
-	  if (count == MAX_COUNT)
-	  	return;
+		if (count == MAX_COUNT)
+			return;
 
 		old_pidError  = pidError;
 
@@ -666,7 +666,7 @@ void do_autonomous_red_skyrise() {
 	wait_for_slide_done();
 	move_slide_to_position(1250);
 
-		move('f', 440, 127);
+	move('f', 440, 127);
 	move('r', 175, 127);
 	turn('c', 1120, 127);
 	move('b', 270, 127);
@@ -820,7 +820,7 @@ void do_autonomous_blue_skyrise() {
 	move_slide_to_position(950);
 	wait_for_slide_done();
 	move('b', 25, 127);
-  move('r', 95, 127);
+	move('r', 95, 127);
 	start_move('b', 950, 120);
 
 	move_slide_to_position(450);
@@ -850,7 +850,7 @@ void do_autonomous_blue_skyrise() {
 	move('f', 235, 127);
 
 
-/*
+	/*
 	move('f', 1150, 127);
 
 	move('r', 805, 127);
@@ -1190,17 +1190,17 @@ task usercontrol()
 
 				startTask(zero_reset_slide);
 			}
-			pidRequestedValue = 0; // Dummy statement to resolve if-then-else ambiguity! Do not remove
+			pidRequestedValue = 1; // Dummy statement to resolve if-then-else ambiguity! Do not remove
 
 
-			} else if (vexRT(Btn6UXmtr2) == 1){
+		} else if (vexRT(Btn6UXmtr2) == 1){
 			// Preset Value -- for now it is just for FIRST Skyrise pickup
 			pidRequestedValue = SKYRISE_MIDDLE_INTAKE_HEIGHT;
-			} else if (vexRT[Btn6DXmtr2]) {
+		} else if (vexRT[Btn6DXmtr2] == 1) {
 			pidRequestedValue = SKYRISE_LOW_INTAKE_HEIGHT;
-			} else if (vexRT[Btn5DXmtr2]) {
+		} else if (vexRT[Btn5DXmtr2] == 1) {
 			pidRequestedValue = 140; // Slide Height to pick up second cube
-			} else {
+		} else {
 			// joystick control of slide arms
 
 			if (abs(vexRT[Ch2Xmtr2]) > JOYSTICK_MAX_NEUTRAL) {
@@ -1215,13 +1215,17 @@ task usercontrol()
 				if (pidRequestedValue <= pid[LEFT_LIFT_PID_INDEX].min_height) {
 					pidRequestedValue = pid[LEFT_LIFT_PID_INDEX].min_height;
 				}
-			} else {
-					pidRequestedValue = (SensorValue[RIGHT_SLIDE_SENSOR_INDEX]+SensorValue[LEFT_SLIDE_SENSOR_INDEX])/2; // Stay where you are currently
-			}
 
-			pid[LEFT_LIFT_PID_INDEX].pidRequestedValue = pidRequestedValue;
-			pid[RIGHT_LIFT_PID_INDEX].pidRequestedValue = pidRequestedValue;
+				pidRequestedValue *= 1; // dummy statement
+
+			} else {
+				pidRequestedValue = (SensorValue[RIGHT_SLIDE_SENSOR_INDEX]+SensorValue[LEFT_SLIDE_SENSOR_INDEX])/2; // Stay where you are currently
+			}
 		}
+
+		pid[LEFT_LIFT_PID_INDEX].pidRequestedValue = pidRequestedValue;
+		pid[RIGHT_LIFT_PID_INDEX].pidRequestedValue = pidRequestedValue;
+
 
 		// Button 7D RESETs ARM (Four Bar)
 		if (vexRT[Btn7DXmtr2] == 1)
