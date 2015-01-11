@@ -283,7 +283,136 @@ task PidController()
 	}
 }
 
-///////////
+/*-----------------------------------------------------------------------------*/
+/*                                                                             */
+/*  pid control task                                                           */
+/*                                                                             */
+/*-----------------------------------------------------------------------------*/
+
+
+task PidController2()
+{
+	float  pidSensorCurrentValue;
+
+	float  pidError;
+	float  pidDerivative;
+	float  pidDrive;
+
+#ifdef DEBUG_PID
+	int max_mismatch = 0;
+#endif /* DEBUG_PID */
+
+
+	int i, j;
+
+	for (i = 0; i < NUM_PID_CONTROLS; i++) {
+		pid[i].previous_error  = 0;
+		pid[i].errorIntegral   = 0;
+		pid[i].previous_motor_power = 0;
+		pid[i].pid_sensor_previous_value = 0;
+		pid[i].previous_speed = 0;
+		pid[i].pid_sensor_previous_value = 0;
+		pid[i].K_value_scale = 1;
+		pid[i].pid_active = true;
+	}
+
+	j = 0;
+
+	//int pid_loop_count = 0;
+
+	while( true ) {
+
+		//writeDebugStreamLine("PID Loop count: %d", pid_loop_count++);
+
+
+
+		for (i = 0; i < NUM_PID_CONTROLS; i++) {
+
+			// If the current pid is not active, skip the loop
+			if (!pid[i].pid_active)
+				continue;
+
+			// Read the sensor value and scale
+			if (i != DRIVE_PID_INDEX) {
+				pidSensorCurrentValue = SensorValue[ pid[i].pid_sensor_index] * pid[i].pid_sensor_scale;
+				} else { // For Drive PID Index
+				pidSensorCurrentValue = (nMotorEncoder[backLeft] * motor_direction[BL] + nMotorEncoder[backRight]*motor_direction[BR])/2.0;
+			}
+
+			// calculate error
+			pidError = pid[i].pidRequestedValue - pidSensorCurrentValue;
+
+
+			// integral - if Ki is not 0
+			if( pid[i].Ki != 0 )
+			{
+				pid[i].errorIntegral =  pid[i].errorIntegral + pidError;
+				// If we are inside controlable window then integrate the error
+				if( abs(pid[i].errorIntegral) > pid[i].pid_integral_limit )
+					pid[i].errorIntegral =  sgn(pid[i].errorIntegral)*pid[i].pid_integral_limit;
+				//else
+				//	pid[i].errorIntegral = 0;
+			}
+			else
+				pid[i].errorIntegral = 0;
+
+			// calculate the derivative
+			pidDerivative =  pidError - pid[i].previous_error;
+			pid[i].previous_error  = pidError;
+
+			// calculate drive
+			pidDrive = pid[i].K_value_scale * (pid[i].Kp * pidError) + (pid[i].Ki * pid[i].errorIntegral) + (pid[i].Kd * pidDerivative);
+
+			// limit PWM to user supplied range (usually -127 to +127)
+			if( pidDrive >  pid[i].max_motor_power )
+				pidDrive = pid[i].max_motor_power;
+			if( pidDrive < pid[i].min_motor_power )
+				pidDrive = pid[i].min_motor_power;
+
+
+			// Limit Rate of change per iteration of 40 Hz loop
+			if (abs(pidDrive - pid[i].previous_motor_power) > pid[i].max_motor_power_delta) {
+				if (pidDrive > pid[i].previous_motor_power)
+					pidDrive = pid[i].previous_motor_power + pid[i].max_motor_power_delta;
+				else
+					pidDrive = pid[i].previous_motor_power - pid[i].max_motor_power_delta;
+			}
+			pid[i].previous_motor_power = pidDrive;
+
+			// send to motor (SORRY -- MAJOR KLUDGE FOLLOWS FOR DRIVE MOTORS!!!
+			if (i != DRIVE_PID_INDEX) {
+				motor[ pid[i].pid_motor_index ] = pidDrive * pid[i].pid_motor_scale;
+				} else {
+
+				//writeDebugStreamLine("pidDrive: %f pidError: %f  PID: %f %f %f", pidDrive, pidError,
+				//pid[i].K_value_scale*pid[i].Kp * pidError, pid[i].K_value_scale*pid[i].Ki * pid[i].errorIntegral, pid[i].K_value_scale*pid[i].Kd * pidDerivative);
+				motor[motor_index[FL]] = (motor_direction[FL]*pidDrive) - 5;//eliminate strafing to the right
+				motor[motor_index[BL]] = (motor_direction[BL]*pidDrive) - 5;
+
+				motor[motor_index[FR]] = motor_direction[FR]*pidDrive;
+				motor[motor_index[BR]] = motor_direction[BR]*pidDrive;
+			}
+
+
+#ifdef DEBUG_PID
+			pid[i].pid_sensor_previous_value = pidSensorCurrentValue;
+			if (i == 0 && abs(vexRT[Ch2Xmtr2]) > JOYSTICK_MAX_NEUTRAL ) {
+				float sensor_mismatch = pid[0].pid_sensor_previous_value - pid[1].pid_sensor_previous_value;
+				if (abs(sensor_mismatch) > abs(max_mismatch))
+					max_mismatch = sensor_mismatch;
+				// writeDebugStreamLine("pidDrive: %f pidError: %f  PID: %f %f %f", pidDrive, pidError, pid[i].Kp * pidError, pid[i].Ki * pid[i].errorIntegral, pid[i].Kd * pidDerivative);
+				writeDebugStreamLine("pidDrive: %f pidError: %f max_mismatch: %f sensor_mismatch %f ", pidDrive, pidError, max_mismatch, sensor_mismatch);
+			}
+#endif // DEBUG_PID
+
+		}
+
+		// Run at 40Hz
+		wait1Msec( PID_LOOP_TIME );
+	}
+}
+
+/////////
 // NOTE: the motor power in init_lift() and zero_reset_slide() and zero_reset_arm() MUST be the same.
 ///////////
 
@@ -532,8 +661,81 @@ void start_move(char dir, int dist, int power)
 
 }
 
+void start_move2(char dir, int dist, int power)
+{
+
+	switch(dir){
+	case 'f':
+		motor_direction[FR] = 1;
+		motor_direction[BR] = 1;
+		motor_direction[FL] = 1;
+		motor_direction[BL] = 1;
+		pid[DRIVE_PID_INDEX].K_value_scale = 1.0;
+
+		break;
+	case 'b':
+		motor_direction[FR] = -1;
+		motor_direction[BR] = -1;
+		motor_direction[FL] = -1;
+		motor_direction[BL] = -1;
+		pid[DRIVE_PID_INDEX].K_value_scale = 1.0;
+
+		break;
+	case 'r':
+		motor_direction[FR] = -1;
+		motor_direction[BR] = 1;
+		motor_direction[FL] = 1;
+		motor_direction[BL] = -1;
+		pid[DRIVE_PID_INDEX].K_value_scale = 3;
+
+		break;
+	case 'l':
+		motor_direction[FR] = 1;
+		motor_direction[BR] = -1;
+		motor_direction[FL] = -1;
+		motor_direction[BL] = 1;
+		pid[DRIVE_PID_INDEX].K_value_scale = 3;
+
+		break;
+	case 'c':
+		motor_direction[FR] = -1;
+		motor_direction[BR] = -1;
+		motor_direction[FL] = 1;
+		motor_direction[BL] = 1;
+		pid[DRIVE_PID_INDEX].K_value_scale = 1.5;
+
+		break;
+	case 'a':
+		motor_direction[FR] = 1;
+		motor_direction[BR] = 1;
+		motor_direction[FL] = -1;
+		motor_direction[BL] = -1;
+		pid[DRIVE_PID_INDEX].K_value_scale = 1.5;
+
+		break;
+	}
+
+	pid[DRIVE_PID_INDEX].max_motor_power = power;
+
+	pid[DRIVE_PID_INDEX].min_motor_power = -power;
+
+	pid[DRIVE_PID_INDEX].pidRequestedValue = dist;
+
+	resetMotorEncoder(backLeft);
+	resetMotorEncoder(backRight);
+
+
+
+
+}
+
 void move(char dir, int dist, int power){
 	start_move(dir, dist, power);
+	wait_for_move_done(dist);
+}
+
+void move2(char dir, int dist, int power){
+	start_move2(dir, dist, power);
 	wait_for_move_done(dist);
 }
 
@@ -621,7 +823,7 @@ void wait_for_slide_done() {
 	} while (abs (pidError) > SLIDE_TARGET_THRESHOLD);
 }
 
-void do_autonomous_red_skyrise() {
+void do_autonomous_red_skyrise_orig() {
 
 	// Getting the Skyrise section
 
@@ -686,6 +888,85 @@ void do_autonomous_red_skyrise() {
 	wait_for_slide_done();
 
 	move('f', 165, 127);*/
+
+}
+
+void do_autonomous_red_skyrise(){
+	// despite the name, this is the programming skills function
+
+  // get the Skyrise
+	move_slide_to_position(450);
+	wait_for_slide_done();
+	move('f', 300, 127);
+	move_slide_to_position(1200);
+	wait_for_slide_done();
+
+	// deliver skyrise
+	move_slide_to_position(1625);
+	move('b', 1100, 127);
+	move_slide_to_position(1280);
+	wait_for_slide_done();
+	move('b', 500, 127);
+	turn('c', 20, 100);
+
+	// move back to the autoloader
+	move_arm_to_position(225);
+	wait_for_arm_done();
+	move('f', 500, 127);
+  move_slide_to_position(450);
+	move_arm_to_position(0);
+	move('f', 750, 127);
+	wait_for_slide_done();
+	wait_for_arm_done();
+	move('l', 36, 100);
+
+	// pick up the second skyrise
+	move('f', 350, 127); //300 to 350
+	move_slide_to_position(950);
+	wait_for_slide_done();
+
+	//deliver the second skyrise
+	move_arm_to_position(520);
+	move('b', 1275, 127);
+	move('l', 20, 80); //j
+	wait_for_arm_done();
+	move_slide_to_position(550);
+	wait_for_slide_done();
+	move('b', 400, 127);
+	turn('c', 40, 100);
+
+	// go back to autoloader
+	move_arm_to_position(700);
+	move_slide_to_position(800);
+	move('f', 500, 127);
+	wait_for_arm_done();
+	wait_for_slide_done();
+	move_slide_to_position(450);
+	move_arm_to_position(0);
+	move('f', 600, 127);
+	wait_for_slide_done();
+	wait_for_arm_done();
+	move('l', 100, 100);
+
+	// pick up third skyrise
+	move('f', 150, 127);
+	turn('c', 50, 100);
+	move('f', 350, 127);
+	move_slide_to_position(950);
+	wait_for_slide_done();
+
+	//deliver the third skyrise
+	move_arm_to_position(600);
+	move_slide_to_position(1300);
+	move('b', 1000, 127);
+	//move('l', 20, 80); //j
+	wait_for_arm_done();
+	wait_for_slide_done();
+	/*
+	move_slide_to_position(550);
+	wait_for_slide_done();
+	move('b', 400, 127);
+	turn('c', 40, 100);*/
 
 }
 
@@ -1088,6 +1369,8 @@ void pre_auton()
 
 	// start the PID task
 	startTask( PidController, 6 );
+	//jess using pid controller 2
+	// startTask(PidController2, 6);
 
 	// Ask for user input on LCD as to which Autonomous to run
 	LcdAutonomousSelection();
