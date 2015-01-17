@@ -866,6 +866,9 @@ void do_autonomous_red_skyrise_orig() {
 
 	move_slide_to_position(400);
 	wait_for_slide_done();
+
+
+
 	move_slide_to_position(1250);
 
 	move('f', 440, 127);
@@ -888,6 +891,99 @@ void do_autonomous_red_skyrise_orig() {
 	wait_for_slide_done();
 
 	move('f', 165, 127);*/
+
+}
+
+
+
+void do_programming_skills() {
+
+	// delivers two skyrises and two cubes
+	// beginning of the programming skills program as of 1/16/2015
+	// will add the end section (do_autonomous_red_skyrise) later
+
+	// Getting the Skyrise section
+
+	//Step 1: Move back one tile
+	start_move('b', 250, 127);
+
+	//Step 2: Raise slide to align with skyrise
+	move_slide_to_position(600);
+	wait_for_move_done(250);
+	move('l', 60, 127);
+	wait_for_slide_done();
+
+	move_slide_to_position(435);
+	wait_for_slide_done();
+
+	//Step 3: Move forward to get skyrise
+	move('f', 280, 80);
+	wait1Msec(250);
+
+
+	//Step 4: Raise slide to take out skyrise
+	move_slide_to_position(950);
+	wait_for_slide_done();
+
+	move('b', 25, 127);
+	move('l', 45, 127);
+
+	// get the two cubes
+
+	start_move('b', 925, 120);
+	move_slide_to_position(450);
+	wait_for_move_done(925);
+
+	wait_for_slide_done();
+
+	move('b', 148, 115);
+
+	move_slide_to_position(0);
+	wait_for_slide_done();
+
+	move('b', 200, 55);
+
+	move_slide_to_position(400);
+	wait_for_slide_done();
+
+	// go to next skyrise
+	move('f', 1250, 127);
+
+	// deliver the second skyrise
+	move_slide_to_position(1100);
+	wait_for_slide_done();
+
+	move('l', 110, 127);
+
+	start_move('b', 1100, 120);
+	wait_for_move_done(1100);
+
+
+
+	move_slide_to_position(650);
+	wait_for_slide_done();
+
+
+	move('b', 200, 115);
+
+	move_slide_to_position(1250);
+	wait_for_slide_done();
+
+
+
+	start_move('f', 500, 127);
+	move_slide_to_position(1950);
+	wait_for_move_done(500);
+	move('r', 175, 127);
+	turn('c', 1120, 127);
+	wait_for_slide_done();
+	move('b', 270, 127);
+
+
+	move_slide_to_position(0);
+	wait_for_slide_done();
+	move('f', 235, 127);
+
 
 }
 
@@ -1399,7 +1495,7 @@ task autonomous()
 
 	switch( MyAutonomous ) {
 	case    0:
-		do_autonomous_red_skyrise();
+		do_programming_skills();
 		break;
 	case    1:
 		do_autonomous_red_cube_only();
