@@ -833,11 +833,13 @@ void do_autonomous_red_skyrise_orig() {
 	//Step 2: Raise slide to align with skyrise
 	move_slide_to_position(600);
 	wait_for_move_done(250);
-	move('l', 60, 127);
+	move('l', 92, 127);
 	wait_for_slide_done();
 
 	move_slide_to_position(435);
 	wait_for_slide_done();
+
+
 
 	//Step 3: Move forward to get skyrise
 	move('f', 280, 80);
@@ -849,15 +851,16 @@ void do_autonomous_red_skyrise_orig() {
 	wait_for_slide_done();
 
 	move('b', 25, 127);
-	move('l', 45, 127);
+	move('l', 65, 127);
 
-	start_move('b', 925, 120);
+	start_move('b', 950, 120);
 	move_slide_to_position(450);
-	wait_for_move_done(925);
+	wait_for_move_done(950);
 
 	wait_for_slide_done();
 
 	move('b', 148, 115);
+
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
@@ -1182,14 +1185,14 @@ void do_autonomous_blue_skyrise() {
 	move_slide_to_position(600);
 	wait_for_move_done(250);
 
-	move('r', 70, 127);
+	move('r', 90, 127);
 	wait_for_slide_done();
 
-	move_slide_to_position(435);
+	move_slide_to_position(400);
 	wait_for_slide_done();
 
 	//Step 3: Move forward to get skyrise
-	move('f', 280, 80);
+	move('f', 290, 80);
 	wait1Msec(250);
 
 
@@ -1197,11 +1200,11 @@ void do_autonomous_blue_skyrise() {
 	move_slide_to_position(950);
 	wait_for_slide_done();
 	move('b', 25, 127);
-	move('r', 95, 127);
-	start_move('b', 950, 120);
+	move('r', 105, 127);
+	start_move('b', 925, 120);
 
 	move_slide_to_position(450);
-	wait_for_move_done(950);
+	wait_for_move_done(925);
 
 	wait_for_slide_done();
 
@@ -1495,7 +1498,7 @@ task autonomous()
 
 	switch( MyAutonomous ) {
 	case    0:
-		do_programming_skills();
+		do_autonomous_red_skyrise();
 		break;
 	case    1:
 		do_autonomous_red_cube_only();
