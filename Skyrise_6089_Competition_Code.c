@@ -1498,7 +1498,7 @@ task autonomous()
 
 	switch( MyAutonomous ) {
 	case    0:
-		do_autonomous_red_skyrise();
+		do_autonomous_red_skyrise_orig();
 		break;
 	case    1:
 		do_autonomous_red_cube_only();
