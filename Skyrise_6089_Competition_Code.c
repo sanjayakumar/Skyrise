@@ -823,7 +823,7 @@ void wait_for_slide_done() {
 	} while (abs (pidError) > SLIDE_TARGET_THRESHOLD);
 }
 
-void do_autonomous_red_skyrise_orig() {
+void do_autonomous_red_skyrise() {
 
 	// Getting the Skyrise section
 
@@ -990,7 +990,7 @@ void do_programming_skills() {
 
 }
 
-void do_autonomous_red_skyrise(){
+void do_programming_skills_part2(){
 	// despite the name, this is the programming skills function
 
   // get the Skyrise
@@ -1345,7 +1345,7 @@ static int MyAutonomous = 0;
 /*-----------------------------------------------------------------------------*/
 
 // max number of auton choices
-#define MAX_CHOICE  5
+#define MAX_CHOICE  6
 
 void
 LcdAutonomousSet( int value, bool select = false )
@@ -1386,6 +1386,9 @@ LcdAutonomousSet( int value, bool select = false )
 		displayLCDString(0, 0, "BLUE CUBE Only");
 		break;
 	case		4:
+		displayLCDString(0, 0, "PROGRAM SKILLS");
+		break;
+	case		5:
 		displayLCDString(0, 0, "DO NOTHING");
 		break;
 	default:
@@ -1487,6 +1490,7 @@ void pre_auton()
 #define RED_CUBE_ONLY	 1
 #define BLUE_SKYRISE 	 2
 #define BLUE_CUBE_ONLY 3
+#define PROGRAMMING_SKILLS 4
 
 
 task autonomous()
@@ -1509,7 +1513,9 @@ task autonomous()
 	case    3:
 		do_autonomous_blue_cube_only();
 		break;
-	case		4:
+	case    4:
+		do_programming_skills();
+	case		5:
 		do_nothing();
 		break;
 	default:
