@@ -829,6 +829,7 @@ void do_autonomous_red_skyrise() {
 
 	//Step 1: Move back one tile
 	start_move('b', 250, 127);
+	wait1Msec(100);
 
 	//Step 2: Raise slide to align with skyrise
 	move_slide_to_position(600);
@@ -1179,6 +1180,7 @@ void do_autonomous_blue_skyrise() {
 
 	//Step 1: Move back one tile
 	start_move('b', 250, 127);
+	wait1Msec(100);
 
 
 	//Step 2: Raise slide to align with skyrise
