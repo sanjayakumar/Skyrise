@@ -910,11 +910,12 @@ void do_programming_skills() {
 
 	//Step 1: Move back one tile
 	start_move('b', 250, 127);
+	wait1Msec(100);
 
 	//Step 2: Raise slide to align with skyrise
 	move_slide_to_position(600);
 	wait_for_move_done(250);
-	move('l', 60, 127);
+	move('l', 92, 127);
 	wait_for_slide_done();
 
 	move_slide_to_position(435);
@@ -931,6 +932,7 @@ void do_programming_skills() {
 
 	move('b', 25, 127);
 	move('l', 45, 127);
+
 
 	// get the two cubes
 
@@ -957,7 +959,7 @@ void do_programming_skills() {
 	move_slide_to_position(1100);
 	wait_for_slide_done();
 
-	move('l', 110, 127);
+	move('l', 55, 127);
 
 	start_move('b', 1100, 120);
 	wait_for_move_done(1100);
@@ -1504,7 +1506,7 @@ task autonomous()
 
 	switch( MyAutonomous ) {
 	case    0:
-		do_autonomous_red_skyrise_orig();
+		do_autonomous_red_skyrise();
 		break;
 	case    1:
 		do_autonomous_red_cube_only();
