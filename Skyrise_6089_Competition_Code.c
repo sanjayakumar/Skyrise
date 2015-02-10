@@ -1,7 +1,7 @@
-
 #pragma config(UART_Usage, UART1, uartVEXLCD, baudRate19200, IOPins, None, None)
 #pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
 #pragma config(I2C_Usage, I2C1, i2cSensors)
+#pragma config(Sensor, dgtl6,  touch,          sensorTouch)
 #pragma config(Sensor, dgtl7,  fourBarEncoder, sensorQuadEncoder)
 #pragma config(Sensor, dgtl9,  leftEncoder,    sensorQuadEncoder)
 #pragma config(Sensor, dgtl11, rightEncoder,   sensorQuadEncoder)
@@ -48,7 +48,7 @@
 #define SLIDE_MOTOR_SCALE     		1
 #define FOUR_BAR_MOTOR_SCALE 			-1
 #define SLIDE_MOTOR_MAX			127.0
-#define SLIDE_MOTOR_MIN			(-80.0)
+#define SLIDE_MOTOR_MIN			(-40.0)
 #define FOUR_BAR_MOTOR_MAX	127.0
 #define FOUR_BAR_MONOR_MIN 	(-80.0)
 #define MAX_SLIDE_MOTOR_POWER_DELTA			30
@@ -146,11 +146,25 @@ float  fourBar_Kd = 0.5;
 
 float drive_Kp = 0.9;
 float drive_Ki = 0;
-float drive_Kd = 1.5;
+float drive_Kd = 0; // need to fix this later!!!! sakumar 2/9/2015 was 1.5
 
 #ifdef DEBUG_IME
 float max_mismatch = 0.0;
 #endif
+
+int debug_step;
+
+// Routine for debugging Autonomous and Program Skills
+void pause_debug() {
+	while (SensorValue[touch] != 1){
+		;
+}
+	writeDebugStreamLine("Step: %d", debug_step++);
+}
+
+//#define AUTO_DEBUG
+
+#define AUTO_DEBUG pause_debug();
 
 
 
@@ -734,6 +748,27 @@ void move(char dir, int dist, int power){
 	wait_for_move_done(dist);
 }
 
+void signed_move(char dir, int dist, int power) {
+	if (dist < 0) {
+		switch(dir) {
+		case 'l':
+			dir = 'r';
+			break;
+		case 'r':
+			dir = 'l';
+			break;
+		case 'f':
+			dir = 'b';
+			break;
+		case 'b':
+			dir = 'f';
+			break;
+		}
+		dist = -dist;
+	}
+	move(dir, dist, power);
+}
+
 void move2(char dir, int dist, int power){
 	start_move2(dir, dist, power);
 	wait_for_move_done(dist);
@@ -823,7 +858,7 @@ void wait_for_slide_done() {
 	} while (abs (pidError) > SLIDE_TARGET_THRESHOLD);
 }
 
-void do_autonomous_red_skyrise() {
+void do_autonomous_red_skyrise(int x_offset, int y_offset) {
 
 	// Getting the Skyrise section
 
@@ -852,7 +887,7 @@ void do_autonomous_red_skyrise() {
 	wait_for_slide_done();
 
 	move('b', 25, 127);
-	move('l', 65, 127);
+	signed_move('l', 65 + x_offset, 127);
 
 	start_move('b', 950, 120);
 	move_slide_to_position(450);
@@ -860,7 +895,7 @@ void do_autonomous_red_skyrise() {
 
 	wait_for_slide_done();
 
-	move('b', 148, 115);
+	signed_move('b', 148 + y_offset, 115);
 
 
 	move_slide_to_position(0);
@@ -900,7 +935,9 @@ void do_autonomous_red_skyrise() {
 
 
 
-void do_programming_skills() {
+void do_programming_skills(int x_offset, int y_offset) {
+
+	debug_step = 0;
 
 	// delivers two skyrises and two cubes
 	// beginning of the programming skills program as of 1/16/2015
@@ -931,47 +968,50 @@ void do_programming_skills() {
 	wait_for_slide_done();
 
 	move('b', 25, 127);
-	move('l', 45, 127);
+	signed_move('l', 45 + x_offset, 127);
 
 
-	// get the two cubes
-
-	start_move('b', 925, 120);
+	// Step 5: Allign on top of second cube
+	start_move('b', 945, 120);
 	move_slide_to_position(450);
-	wait_for_move_done(925);
+	wait_for_move_done(945);
 
 	wait_for_slide_done();
 
-	move('b', 148, 115);
+	signed_move('b', 148 + y_offset, 115);
+
+	// Step 6: Deliver first skyrise
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
 
+
+	// Step 7: Take in second cube
 	move('b', 200, 55);
 
 	move_slide_to_position(400);
 	wait_for_slide_done();
 
-	// go to next skyrise
-	move('f', 1250, 127);
+	// Step 8: go to next skyrise
+	move('l', -x_offset, 127);
 
-	// deliver the second skyrise
+	move_slide_to_position(390);
+	move('f', 1250 + y_offset, 127);
+
+	// Step 9: deliver the second skyrise
 	move_slide_to_position(1100);
 	wait_for_slide_done();
 
-	move('l', 55, 127);
+	signed_move('l', 55 + x_offset, 127);
 
-	start_move('b', 1100, 120);
-	wait_for_move_done(1100);
-
-
+	signed_move('b', 1100 + y_offset, 120);
 
 	move_slide_to_position(650);
 	wait_for_slide_done();
 
-
 	move('b', 200, 115);
 
+	// Step 10: Deliver cubes
 	move_slide_to_position(1250);
 	wait_for_slide_done();
 
@@ -980,7 +1020,7 @@ void do_programming_skills() {
 	start_move('f', 500, 127);
 	move_slide_to_position(1950);
 	wait_for_move_done(500);
-	move('r', 175, 127);
+	move('r', 250, 127);
 	turn('c', 1120, 127);
 	wait_for_slide_done();
 	move('b', 270, 127);
@@ -993,49 +1033,99 @@ void do_programming_skills() {
 
 }
 
-void do_programming_skills_part2(){
-	// despite the name, this is the programming skills function
+void test_program(){
 
-  // get the Skyrise
-	move_slide_to_position(450);
+	move('b', 1100, 127);
+	wait10Msec(50);
+	move('f', 1250, 127);
+	wait10Msec(50);
+	move('b', 1100, 127);
+	wait10Msec(50);
+	move('f', 1250, 127);
+	wait10Msec(50);
+	move('b', 1100, 127);
+	wait10Msec(50);
+	move('f', 1250, 127);
+	wait10Msec(50);
+	move('b', 1100, 127);
+	wait10Msec(50);
+	move('f', 1250, 127);
+	wait10Msec(50);
+	move('b', 1100, 127);
+	wait10Msec(50);
+	move('f', 1250, 127);
+	wait10Msec(50);
+
+}
+
+void do_programming_skills_part2(){
+
+	// get the Skyrise
+	move_slide_to_position(820);
 	wait_for_slide_done();
-	move('f', 300, 127);
+	move('f', 280, 127);
+
+	AUTO_DEBUG
+
+	move('b', 250, 127);
+	move_slide_to_position(390);
+	wait_for_slide_done();
+	move('l', 65, 127);
+
+
+	// Move forward to grab said skyrise
+	move('f', 200, 127);
 	move_slide_to_position(1200);
 	wait_for_slide_done();
 
+
 	// deliver skyrise
 	move_slide_to_position(1625);
-	move('b', 1100, 127);
+	move('b', 975, 127);
+	wait_for_slide_done();
+
+	AUTO_DEBUG
+
 	move_slide_to_position(1280);
 	wait_for_slide_done();
+	move('r', 170, 127);
 	move('b', 500, 127);
-	turn('c', 20, 100);
+
+	//turn('c', 20, 100);
+
+	AUTO_DEBUG
 
 	// move back to the autoloader
 	move_arm_to_position(225);
 	wait_for_arm_done();
 	move('f', 500, 127);
-  move_slide_to_position(450);
+	move_slide_to_position(450);
 	move_arm_to_position(0);
 	move('f', 750, 127);
 	wait_for_slide_done();
 	wait_for_arm_done();
 	move('l', 36, 100);
 
+	AUTO_DEBUG
+
 	// pick up the second skyrise
 	move('f', 350, 127); //300 to 350
 	move_slide_to_position(950);
 	wait_for_slide_done();
 
+	AUTO_DEBUG
+
 	//deliver the second skyrise
 	move_arm_to_position(520);
 	move('b', 1275, 127);
-	move('l', 20, 80); //j
+	move('l', 20, 80);
 	wait_for_arm_done();
 	move_slide_to_position(550);
 	wait_for_slide_done();
 	move('b', 400, 127);
-	turn('c', 40, 100);
+	//turn('c', 40, 100);
+
+	AUTO_DEBUG
 
 	// go back to autoloader
 	move_arm_to_position(700);
@@ -1050,12 +1140,16 @@ void do_programming_skills_part2(){
 	wait_for_arm_done();
 	move('l', 100, 100);
 
+	AUTO_DEBUG
+
 	// pick up third skyrise
 	move('f', 150, 127);
 	turn('c', 50, 100);
 	move('f', 350, 127);
 	move_slide_to_position(950);
 	wait_for_slide_done();
+
+	AUTO_DEBUG
 
 	//deliver the third skyrise
 	move_arm_to_position(600);
@@ -1064,6 +1158,8 @@ void do_programming_skills_part2(){
 	//move('l', 20, 80); //j
 	wait_for_arm_done();
 	wait_for_slide_done();
+
+	AUTO_DEBUG
 	/*
 	move_slide_to_position(550);
 	wait_for_slide_done();
@@ -1176,7 +1272,7 @@ void do_autonomous_red_cube_only() {
 
 
 
-void do_autonomous_blue_skyrise() {
+void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 
 	// Getting the Skyrise section
 
@@ -1204,7 +1300,7 @@ void do_autonomous_blue_skyrise() {
 	move_slide_to_position(950);
 	wait_for_slide_done();
 	move('b', 25, 127);
-	move('r', 105, 127);
+	signed_move('r', 105 + x_offset, 127);
 	start_move('b', 925, 120);
 
 	move_slide_to_position(450);
@@ -1212,7 +1308,7 @@ void do_autonomous_blue_skyrise() {
 
 	wait_for_slide_done();
 
-	move('b', 148, 115);
+	signed_move('b', 148 + y_offset, 115);
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
@@ -1506,19 +1602,19 @@ task autonomous()
 
 	switch( MyAutonomous ) {
 	case    0:
-		do_autonomous_red_skyrise();
+		do_programming_skills_part2();
 		break;
 	case    1:
 		do_autonomous_red_cube_only();
 		break;
 	case    2:
-		do_autonomous_blue_skyrise();
+		do_autonomous_blue_skyrise(0, 0);
 		break;
 	case    3:
 		do_autonomous_blue_cube_only();
 		break;
 	case    4:
-		do_programming_skills();
+		do_programming_skills(0,0);
 	case		5:
 		do_nothing();
 		break;
@@ -1585,14 +1681,14 @@ task usercontrol()
 			pidRequestedValue = 1; // Dummy statement to resolve if-then-else ambiguity! Do not remove
 
 
-		} else if (vexRT(Btn6UXmtr2) == 1){
+			} else if (vexRT(Btn6UXmtr2) == 1){
 			// Preset Value -- for now it is just for FIRST Skyrise pickup
 			pidRequestedValue = SKYRISE_MIDDLE_INTAKE_HEIGHT;
-		} else if (vexRT[Btn6DXmtr2] == 1) {
+			} else if (vexRT[Btn6DXmtr2] == 1) {
 			pidRequestedValue = SKYRISE_LOW_INTAKE_HEIGHT;
-		} else if (vexRT[Btn5DXmtr2] == 1) {
+			} else if (vexRT[Btn5DXmtr2] == 1) {
 			pidRequestedValue = 140; // Slide Height to pick up second cube
-		} else {
+			} else {
 			// joystick control of slide arms
 
 			if (abs(vexRT[Ch2Xmtr2]) > JOYSTICK_MAX_NEUTRAL) {
@@ -1610,7 +1706,7 @@ task usercontrol()
 
 				pidRequestedValue *= 1; // dummy statement
 
-			} else {
+				} else {
 				pidRequestedValue = (SensorValue[RIGHT_SLIDE_SENSOR_INDEX]+SensorValue[LEFT_SLIDE_SENSOR_INDEX])/2; // Stay where you are currently
 			}
 		}
