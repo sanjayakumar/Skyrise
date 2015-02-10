@@ -48,7 +48,7 @@
 #define SLIDE_MOTOR_SCALE     		1
 #define FOUR_BAR_MOTOR_SCALE 			-1
 #define SLIDE_MOTOR_MAX			127.0
-#define SLIDE_MOTOR_MIN			(-40.0)
+#define SLIDE_MOTOR_MIN			(-60.0)
 #define FOUR_BAR_MOTOR_MAX	127.0
 #define FOUR_BAR_MONOR_MIN 	(-80.0)
 #define MAX_SLIDE_MOTOR_POWER_DELTA			30
@@ -144,9 +144,9 @@ float  fourBar_Kp = 1.2;
 float  fourBar_Ki = 0.00;
 float  fourBar_Kd = 0.5;
 
-float drive_Kp = 0.9;
-float drive_Ki = 0;
-float drive_Kd = 0; // need to fix this later!!!! sakumar 2/9/2015 was 1.5
+float drive_Kp = 1.0;
+float drive_Ki = 0.004;
+float drive_Kd = 0.8;
 
 #ifdef DEBUG_IME
 float max_mismatch = 0.0;
@@ -157,14 +157,14 @@ int debug_step;
 // Routine for debugging Autonomous and Program Skills
 void pause_debug() {
 	while (SensorValue[touch] != 1){
-		;
-}
+		wait1Msec(50);
+	}
 	writeDebugStreamLine("Step: %d", debug_step++);
 }
 
-//#define AUTO_DEBUG
+#define AUTO_DEBUG
 
-#define AUTO_DEBUG pause_debug();
+//#define AUTO_DEBUG pause_debug();
 
 
 
@@ -221,25 +221,20 @@ task PidController()
 			if (i != DRIVE_PID_INDEX) {
 				pidSensorCurrentValue = SensorValue[ pid[i].pid_sensor_index] * pid[i].pid_sensor_scale;
 				} else { // For Drive PID Index
-				pidSensorCurrentValue = (nMotorEncoder[backLeft] * motor_direction[BL] + nMotorEncoder[backRight]*motor_direction[BR])/2.0;
+				//pidSensorCurrentValue = (nMotorEncoder[backLeft] * motor_direction[BL] + nMotorEncoder[backRight]*motor_direction[BR])/2.0;
+				pidSensorCurrentValue = sgn(nMotorEncoder[backLeft])/2.0*(abs(nMotorEncoder[backLeft])+abs(nMotorEncoder[backRight]));
 			}
 
 			// calculate error
 			pidError = pid[i].pidRequestedValue - pidSensorCurrentValue;
 
 
-			// integral - if Ki is not 0
-			if( pid[i].Ki != 0 )
-			{
-				pid[i].errorIntegral =  pid[i].errorIntegral + pidError;
-				// If we are inside controlable window then integrate the error
-				if( abs(pid[i].errorIntegral) > pid[i].pid_integral_limit )
+			// integral
+			pid[i].errorIntegral =  pid[i].errorIntegral/1.05 + pidError; // 2/10/2015 experimenting with decay factor
+			// If we are inside controlable window then integrate the error
+			if( abs(pid[i].errorIntegral) > pid[i].pid_integral_limit )
 					pid[i].errorIntegral =  sgn(pid[i].errorIntegral)*pid[i].pid_integral_limit;
-				//else
-				//	pid[i].errorIntegral = 0;
-			}
-			else
-				pid[i].errorIntegral = 0;
+
 
 			// calculate the derivative
 			pidDerivative =  pidError - pid[i].previous_error;
@@ -267,10 +262,16 @@ task PidController()
 			// send to motor (SORRY -- MAJOR KLUDGE FOLLOWS FOR DRIVE MOTORS!!!
 			if (i != DRIVE_PID_INDEX) {
 				motor[ pid[i].pid_motor_index ] = pidDrive * pid[i].pid_motor_scale;
-				} else {
-
-				//writeDebugStreamLine("pidDrive: %f pidError: %f  PID: %f %f %f", pidDrive, pidError,
-				//pid[i].K_value_scale*pid[i].Kp * pidError, pid[i].K_value_scale*pid[i].Ki * pid[i].errorIntegral, pid[i].K_value_scale*pid[i].Kd * pidDerivative);
+			} else {
+//#ifdef DEBUG_PID
+				if (abs(pidDrive) > 10){ // don't print if the robot isn't moving.
+					writeDebugStreamLine("pidError: %f pidIntegral: %f  pidDerivative: %f %f %f", pidError, pid[i].errorIntegral, pidDerivative);
+					writeDebugStreamLine("pidDrive: %f PID: %f %f %f", pidDrive,
+					pid[i].K_value_scale*pid[i].Kp * pidError, pid[i].K_value_scale*pid[i].Ki * pid[i].errorIntegral, pid[i].K_value_scale*pid[i].Kd * pidDerivative);
+					writeDebugStreamLine("FL Dir: %d FL Power: %f BL Dir: %d BL Power: %f FR Dir: %d FR Power: %f BR Dir: %d BR Power: %f",
+					motor_direction[FL], motor_direction[FL]*pidDrive, motor_index[BL], motor_direction[BL]*pidDrive, motor_index[FR], motor_direction[FR]*pidDrive, motor_index[BR], motor_direction[BR]*pidDrive);
+				}
+//#endif DEBUG_PID
 				motor[motor_index[FL]] = motor_direction[FL]*pidDrive;
 				motor[motor_index[BL]] = motor_direction[BL]*pidDrive;
 
@@ -617,22 +618,24 @@ void start_move(char dir, int dist, int power)
 		motor_direction[FL] = 1;
 		motor_direction[BL] = 1;
 		pid[DRIVE_PID_INDEX].K_value_scale = 1.0;
-
+		// dist = dist;
 		break;
 	case 'b':
-		motor_direction[FR] = -1;
-		motor_direction[BR] = -1;
-		motor_direction[FL] = -1;
-		motor_direction[BL] = -1;
+		motor_direction[FR] = 1;
+		motor_direction[BR] = 1;
+		motor_direction[FL] = 1;
+		motor_direction[BL] = 1;
 		pid[DRIVE_PID_INDEX].K_value_scale = 1.0;
+		dist = -dist;
 
 		break;
 	case 'r':
-		motor_direction[FR] = -1;
-		motor_direction[BR] = 1;
-		motor_direction[FL] = 1;
-		motor_direction[BL] = -1;
+		motor_direction[FR] = 1;
+		motor_direction[BR] = -1;
+		motor_direction[FL] = -1;
+		motor_direction[BL] = 1;
 		pid[DRIVE_PID_INDEX].K_value_scale = 3;
+		dist = -dist;
 
 		break;
 	case 'l':
@@ -641,6 +644,7 @@ void start_move(char dir, int dist, int power)
 		motor_direction[FL] = -1;
 		motor_direction[BL] = 1;
 		pid[DRIVE_PID_INDEX].K_value_scale = 3;
+		// dist = dist;
 
 		break;
 	case 'c':
@@ -649,14 +653,16 @@ void start_move(char dir, int dist, int power)
 		motor_direction[FL] = 1;
 		motor_direction[BL] = 1;
 		pid[DRIVE_PID_INDEX].K_value_scale = 1.5;
+		// dist = dist;
 
 		break;
 	case 'a':
-		motor_direction[FR] = 1;
-		motor_direction[BR] = 1;
-		motor_direction[FL] = -1;
-		motor_direction[BL] = -1;
+		motor_direction[FR] = -1;
+		motor_direction[BR] = -1;
+		motor_direction[FL] = 1;
+		motor_direction[BL] = 1;
 		pid[DRIVE_PID_INDEX].K_value_scale = 1.5;
+		dist = -dist;
 
 		break;
 	}
@@ -670,78 +676,8 @@ void start_move(char dir, int dist, int power)
 	resetMotorEncoder(backLeft);
 	resetMotorEncoder(backRight);
 
-
-
-
 }
 
-void start_move2(char dir, int dist, int power)
-{
-
-	switch(dir){
-	case 'f':
-		motor_direction[FR] = 1;
-		motor_direction[BR] = 1;
-		motor_direction[FL] = 1;
-		motor_direction[BL] = 1;
-		pid[DRIVE_PID_INDEX].K_value_scale = 1.0;
-
-		break;
-	case 'b':
-		motor_direction[FR] = -1;
-		motor_direction[BR] = -1;
-		motor_direction[FL] = -1;
-		motor_direction[BL] = -1;
-		pid[DRIVE_PID_INDEX].K_value_scale = 1.0;
-
-		break;
-	case 'r':
-		motor_direction[FR] = -1;
-		motor_direction[BR] = 1;
-		motor_direction[FL] = 1;
-		motor_direction[BL] = -1;
-		pid[DRIVE_PID_INDEX].K_value_scale = 3;
-
-		break;
-	case 'l':
-		motor_direction[FR] = 1;
-		motor_direction[BR] = -1;
-		motor_direction[FL] = -1;
-		motor_direction[BL] = 1;
-		pid[DRIVE_PID_INDEX].K_value_scale = 3;
-
-		break;
-	case 'c':
-		motor_direction[FR] = -1;
-		motor_direction[BR] = -1;
-		motor_direction[FL] = 1;
-		motor_direction[BL] = 1;
-		pid[DRIVE_PID_INDEX].K_value_scale = 1.5;
-
-		break;
-	case 'a':
-		motor_direction[FR] = 1;
-		motor_direction[BR] = 1;
-		motor_direction[FL] = -1;
-		motor_direction[BL] = -1;
-		pid[DRIVE_PID_INDEX].K_value_scale = 1.5;
-
-		break;
-	}
-
-	pid[DRIVE_PID_INDEX].max_motor_power = power;
-
-	pid[DRIVE_PID_INDEX].min_motor_power = -power;
-
-	pid[DRIVE_PID_INDEX].pidRequestedValue = dist;
-
-	resetMotorEncoder(backLeft);
-	resetMotorEncoder(backRight);
-
-
-
-
-}
 
 void move(char dir, int dist, int power){
 	start_move(dir, dist, power);
@@ -767,11 +703,6 @@ void signed_move(char dir, int dist, int power) {
 		dist = -dist;
 	}
 	move(dir, dist, power);
-}
-
-void move2(char dir, int dist, int power){
-	start_move2(dir, dist, power);
-	wait_for_move_done(dist);
 }
 
 void turn(char dir, int angle, int power) {
@@ -955,7 +886,7 @@ void do_programming_skills(int x_offset, int y_offset) {
 	move('l', 92, 127);
 	wait_for_slide_done();
 
-	move_slide_to_position(435);
+	move_slide_to_position(445);
 	wait_for_slide_done();
 
 	//Step 3: Move forward to get skyrise
@@ -972,9 +903,9 @@ void do_programming_skills(int x_offset, int y_offset) {
 
 
 	// Step 5: Allign on top of second cube
-	start_move('b', 945, 120);
+	start_move('b', 915, 120);
 	move_slide_to_position(450);
-	wait_for_move_done(945);
+	wait_for_move_done(915);
 
 	wait_for_slide_done();
 
@@ -999,13 +930,15 @@ void do_programming_skills(int x_offset, int y_offset) {
 	move('f', 1250 + y_offset, 127);
 
 	// Step 9: deliver the second skyrise
+
 	move_slide_to_position(1100);
 	wait_for_slide_done();
 
 	signed_move('l', 55 + x_offset, 127);
 
-	signed_move('b', 1100 + y_offset, 120);
+	signed_move('b', 1050 + y_offset, 120);
 
+	wait1Msec(750);
 	move_slide_to_position(650);
 	wait_for_slide_done();
 
@@ -1017,154 +950,310 @@ void do_programming_skills(int x_offset, int y_offset) {
 
 
 
-	start_move('f', 500, 127);
+	start_move('f', 400, 127);
 	move_slide_to_position(1950);
 	wait_for_move_done(500);
 	move('r', 250, 127);
-	turn('c', 1120, 127);
+	turn('c', 1150, 127);
 	wait_for_slide_done();
-	move('b', 270, 127);
+	move('b', 340, 127);
 
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
-	move('f', 235, 127);
+	move('b', 40, 80);
+
+	// Step 11: transition
+	move('f', 300, 127);
+	turn('a', 1250, 127);
+
+	move('f', 175, 127);
+	move_slide_to_position(820);
+	wait_for_slide_done();
+	move('l', 50, 127);
+	move('f', 750, 127);
+
+	pause_debug();
+
+	move('b', 250, 127);
+
+	//AUTO_DEBUG
+
+	move_slide_to_position(390);
+	wait_for_slide_done();
+
+	move('l', 65, 127);
+
+	//AUTO_DEBUG
+
+	// Move forward to grab said skyrise
+	move('f', 200, 127);
+
+	move_slide_to_position(1200);
+	wait_for_slide_done();
+
+	//AUTO_DEBUG
+
+	// deliver skyrise
+	move_slide_to_position(1625);
+	move('b', 1000, 127);
+	wait_for_slide_done();
+	move('l', 15, 127);
+
+	//AUTO_DEBUG
+
+	move_slide_to_position(1280);
+	wait_for_slide_done();
+
+
+	//AUTO_DEBUG
+
+	move('b', 500, 127);
+	move('r', 170, 127);
+	//turn('c', 20, 100);
+
+	//AUTO_DEBUG
+
+	// move back to the autoloader
+	move_arm_to_position(225);
+	wait_for_arm_done();
+
+	move('f', 600, 127);
+
+	move_slide_to_position(390);
+	move('f', 650, 127);
+	wait_for_slide_done();
+	move_arm_to_position(0);
+	wait_for_arm_done();
+	move('l', 170, 127);
+
+
+	//AUTO_DEBUG
+
+	// pick up the second skyrise
+	move('f', 360, 127); //300 to 350
+	move_slide_to_position(950);
+	wait_for_slide_done();
+
+
+
+	//AUTO_DEBUG
+
+	//deliver the second skyrise
+	move_arm_to_position(520);
+	move('b', 1160, 127);
+	move('l', 20, 80);
+	wait_for_arm_done();
+
+
+	move_slide_to_position(540);
+	wait_for_slide_done();
+	move('b', 400, 127);
+	move('r', 75, 127);
+
+	//turn('c', 40, 100);
+
+	//AUTO_DEBUG
+
+	// go back to autoloader
+	move_arm_to_position(700);
+	move_slide_to_position(850);
+	move('f', 700, 127);
+	wait_for_arm_done();
+	wait_for_slide_done();
+
+
+	move_slide_to_position(390);
+	move('f', 550, 127);
+	wait_for_slide_done();
+	move_arm_to_position(0);
+	wait_for_arm_done();
+	move('l', 110, 100);
+
+
+//	AUTO_DEBUG
+
+	// pick up third skyrise
+	move('f', 350, 127);
+	//turn('c', 50, 100);
+	move_slide_to_position(950);
+	wait_for_slide_done();
+
+
+
+
+	//deliver the third skyrise
+	move_slide_to_position(1380);
+	move('b', 550, 127);
+	//move('l', 20, 80); //j
+	wait_for_slide_done();
+	move_arm_to_position(600);
+	move('b', 500, 127);
+	wait_for_arm_done();
+	move('l',45, 127);
+
+
+
+
+	move_slide_to_position(750);
+	wait_for_slide_done();
+	move('b', 400, 127);
+	//turn('c', 40, 100);
+	return;
 
 
 }
 
 void test_program(){
 
-	move('b', 1100, 127);
-	wait10Msec(50);
-	move('f', 1250, 127);
-	wait10Msec(50);
-	move('b', 1100, 127);
-	wait10Msec(50);
-	move('f', 1250, 127);
-	wait10Msec(50);
-	move('b', 1100, 127);
-	wait10Msec(50);
-	move('f', 1250, 127);
-	wait10Msec(50);
-	move('b', 1100, 127);
-	wait10Msec(50);
-	move('f', 1250, 127);
-	wait10Msec(50);
-	move('b', 1100, 127);
-	wait10Msec(50);
-	move('f', 1250, 127);
-	wait10Msec(50);
-
+	move('f', 1000, 127);
+	wait1Msec(500);
+	move('b', 1000, 127);
+	wait1Msec(500);
+	move('l', 1000, 127);
+	wait1Msec(500);
+	move('r', 1000, 127);
+	wait1Msec(500);
+	move('c', 1000, 127);
+	wait1Msec(500);
+	move('a', 1000, 127);
 }
 
 void do_programming_skills_part2(){
+	debug_step = 0;
 
 	// get the Skyrise
 	move_slide_to_position(820);
 	wait_for_slide_done();
 	move('f', 280, 127);
 
-	AUTO_DEBUG
+	pause_debug();
 
 	move('b', 250, 127);
+
+	//AUTO_DEBUG
+
 	move_slide_to_position(390);
 	wait_for_slide_done();
+
 	move('l', 65, 127);
 
+	//AUTO_DEBUG
 
 	// Move forward to grab said skyrise
 	move('f', 200, 127);
+
 	move_slide_to_position(1200);
 	wait_for_slide_done();
 
+	//AUTO_DEBUG
 
 	// deliver skyrise
 	move_slide_to_position(1625);
-	move('b', 975, 127);
+	move('b', 1000, 127);
 	wait_for_slide_done();
+	move('l', 15, 127);
 
-	AUTO_DEBUG
+	//AUTO_DEBUG
 
 	move_slide_to_position(1280);
 	wait_for_slide_done();
-	move('r', 170, 127);
-	move('b', 500, 127);
 
+
+	//AUTO_DEBUG
+
+	move('b', 500, 127);
+	move('r', 170, 127);
 	//turn('c', 20, 100);
 
-	AUTO_DEBUG
+	//AUTO_DEBUG
 
 	// move back to the autoloader
 	move_arm_to_position(225);
 	wait_for_arm_done();
-	move('f', 500, 127);
-	move_slide_to_position(450);
-	move_arm_to_position(0);
-	move('f', 750, 127);
-	wait_for_slide_done();
-	wait_for_arm_done();
-	move('l', 36, 100);
 
-	AUTO_DEBUG
+	move('f', 600, 127);
+
+	move_slide_to_position(390);
+	move('f', 650, 127);
+	wait_for_slide_done();
+	move_arm_to_position(0);
+	wait_for_arm_done();
+	move('l', 170, 127);
+
+
+	//AUTO_DEBUG
 
 	// pick up the second skyrise
-	move('f', 350, 127); //300 to 350
+	move('f', 360, 127); //300 to 350
 	move_slide_to_position(950);
 	wait_for_slide_done();
 
-	AUTO_DEBUG
+
+
+	//AUTO_DEBUG
 
 	//deliver the second skyrise
 	move_arm_to_position(520);
-	move('b', 1275, 127);
+	move('b', 1160, 127);
 	move('l', 20, 80);
 	wait_for_arm_done();
-	move_slide_to_position(550);
+
+
+	move_slide_to_position(540);
 	wait_for_slide_done();
 	move('b', 400, 127);
+	move('r', 75, 127);
+
 	//turn('c', 40, 100);
 
-	AUTO_DEBUG
+	//AUTO_DEBUG
 
 	// go back to autoloader
 	move_arm_to_position(700);
-	move_slide_to_position(800);
-	move('f', 500, 127);
+	move_slide_to_position(850);
+	move('f', 700, 127);
 	wait_for_arm_done();
 	wait_for_slide_done();
-	move_slide_to_position(450);
-	move_arm_to_position(0);
-	move('f', 600, 127);
-	wait_for_slide_done();
-	wait_for_arm_done();
-	move('l', 100, 100);
 
-	AUTO_DEBUG
+
+	move_slide_to_position(390);
+	move('f', 550, 127);
+	wait_for_slide_done();
+	move_arm_to_position(0);
+	wait_for_arm_done();
+	move('l', 110, 100);
+
+
+//	AUTO_DEBUG
 
 	// pick up third skyrise
-	move('f', 150, 127);
-	turn('c', 50, 100);
 	move('f', 350, 127);
+	//turn('c', 50, 100);
 	move_slide_to_position(950);
 	wait_for_slide_done();
 
-	AUTO_DEBUG
+
+
 
 	//deliver the third skyrise
-	move_arm_to_position(600);
-	move_slide_to_position(1300);
-	move('b', 1000, 127);
+	move_slide_to_position(1380);
+	move('b', 550, 127);
 	//move('l', 20, 80); //j
-	wait_for_arm_done();
 	wait_for_slide_done();
+	move_arm_to_position(600);
+	move('b', 500, 127);
+	wait_for_arm_done();
+	move('l',45, 127);
 
-	AUTO_DEBUG
-	/*
-	move_slide_to_position(550);
+
+
+
+	move_slide_to_position(750);
 	wait_for_slide_done();
 	move('b', 400, 127);
-	turn('c', 40, 100);*/
+	//turn('c', 40, 100);
+	return;
 
 }
 
@@ -1602,7 +1691,7 @@ task autonomous()
 
 	switch( MyAutonomous ) {
 	case    0:
-		do_programming_skills_part2();
+		do_programming_skills(0,0);
 		break;
 	case    1:
 		do_autonomous_red_cube_only();
