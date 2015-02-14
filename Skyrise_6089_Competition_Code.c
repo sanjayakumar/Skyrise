@@ -146,7 +146,7 @@ float  fourBar_Kd = 0.5;
 
 float drive_Kp = 1.0;
 float drive_Ki = 0.004;
-float drive_Kd = 0.8;
+float drive_Kd = 0.6;
 
 #ifdef DEBUG_IME
 float max_mismatch = 0.0;
@@ -936,7 +936,7 @@ void do_programming_skills(int x_offset, int y_offset) {
 
 	signed_move('l', 55 + x_offset, 127);
 
-	signed_move('b', 1050 + y_offset, 120);
+	signed_move('b', 1100 + y_offset, 120);
 
 	wait1Msec(750);
 	move_slide_to_position(650);
@@ -970,7 +970,7 @@ void do_programming_skills(int x_offset, int y_offset) {
 	move('f', 175, 127);
 	move_slide_to_position(820);
 	wait_for_slide_done();
-	move('l', 50, 127);
+	move('l', 150, 127);
 	move('f', 750, 127);
 
 	pause_debug();
@@ -1041,14 +1041,14 @@ void do_programming_skills(int x_offset, int y_offset) {
 
 	//deliver the second skyrise
 	move_arm_to_position(520);
-	move('b', 1160, 127);
+	move('b', 1120, 127);
 	move('l', 20, 80);
 	wait_for_arm_done();
 
 
 	move_slide_to_position(540);
 	wait_for_slide_done();
-	move('b', 400, 127);
+	move('b', 440, 127);
 	move('r', 75, 127);
 
 	//turn('c', 40, 100);
@@ -1064,17 +1064,17 @@ void do_programming_skills(int x_offset, int y_offset) {
 
 
 	move_slide_to_position(390);
-	move('f', 550, 127);
+	move('f', 500, 127);
 	wait_for_slide_done();
 	move_arm_to_position(0);
 	wait_for_arm_done();
-	move('l', 110, 100);
+	move('l', 97, 100);
 
 
 //	AUTO_DEBUG
 
 	// pick up third skyrise
-	move('f', 350, 127);
+	move('f', 400, 127);
 	//turn('c', 50, 100);
 	move_slide_to_position(950);
 	wait_for_slide_done();
