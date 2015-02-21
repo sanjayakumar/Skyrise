@@ -1,0 +1,342 @@
+  
+
+pidError: 280.000000 pidIntegral: 280.000000  pidDerivative: 280.000000  
+pidDrive: 80.000000 PID: 252.000000 0.000000 280.000000
+FL Dir: 1 FL Power: 80.000000 BL Dir: 6 BL Power: 80.000000 FR Dir: 5 FR Power: 80.000000 BR Dir: 2 BR Power: 80.000000
+pidError: 280.000000 pidIntegral: 546.666687  pidDerivative: 0.000000  
+pidDrive: 80.000000 PID: 252.000000 0.000000 0.000000
+FL Dir
+
+<<<***    374/   374 Chars Overrun (incremental/total) [1]***>>>
+
+1.000000 pidIntegral: 1005.414246  pidDerivative: -20.500000  
+pidDrive: 80.000000 PID: 225.899994 0.000000 -20.500000
+FL Dir: 1 FL Power: 80.000000 BL Dir: 6 BL Power: 80.000000 FR Dir: 5 FR
+
+<<<***   2015/  2389 Chars Overrun (incremental/total) [2]***>>>
+
+ 77.299995 BR Dir: 2 BR Power: 77.299995
+pidError: 88.500000 pidIntegral: 1844.752686  pidDerivative: -23.500000  
+pidDrive: 56.150002 PID: 79.650002 0.000000 -23.500000
+FL Dir: 1 FL Power: 5
+
+<<<***   2499/  4888 Chars Overrun (incremental/total) [3]***>>>
+
+ 6 BL Power: 13.500000 FR Dir: 5 FR Power: 13.500000 BR Dir: 2 BR Power: 13.500000
+pidError: 15.000000 pidIntegral: 999.239746  pidDerivative: 0.000000  
+pidDrive: 13.500000 PID: 13.500000 0.
+
+<<<***   1029/  5917 Chars Overrun (incremental/total) [4]***>>>
+
+L Dir: 6 BL Power: 11.650000 FR Dir: 5 FR Power: 11.650000 BR Dir: 2 BR Power: 11.650000
+pidError: 13.000000 pidIntegral: 846.352356  pidDerivative: -0.500000  
+pidDrive: 11.200000 PID: 11.70
+
+<<<***    785/  6702 Chars Overrun (incremental/total) [5]***>>>
+
+9999 BL Dir: 6 BL Power: 10.799999 FR Dir: 5 FR Power: 10.799999 BR Dir: 2 BR Power: 10.799999
+pidError: 12.000000 pidIntegral: 741.407227  pidDerivative: 0.000000  
+pidDrive: 10.799999 PID: 
+
+<<<***    785/  7487 Chars Overrun (incremental/total) [6]***>>>
+
+9999 BL Dir: 6 BL Power: 10.799999 FR Dir: 5 FR Power: 10.799999 BR Dir: 2 BR Power: 10.799999
+pidError: 12.000000 pidIntegral: 654.636719  pidDerivative: 0.000000  
+pidDrive: 10.799999 PID: 
+
+<<<***   1029/  8516 Chars Overrun (incremental/total) [7]***>>>
+
+9999 BL Dir: 6 BL Power: 10.799999 FR Dir: 5 FR Power: 10.799999 BR Dir: 2 BR Power: 10.799999
+pidError: 12.000000 pidIntegral: 567.476501  pidDerivative: 0.000000  
+pidDrive: 10.799999 PID: 
+
+<<<***    785/  9301 Chars Overrun (incremental/total) [8]***>>>
+
+9999 BL Dir: 6 BL Power: 10.799999 FR Dir: 5 FR Power: 10.799999 BR Dir: 2 BR Power: 10.799999
+pidError: 12.000000 pidIntegral: 511.543427  pidDerivative: 0.000000  
+pidDrive: 10.799999 PID: 
+
+<<<***    848/ 10149 Chars Overrun (incremental/total) [9]***>>>
+
+9 BR Dir: 2 BR Power: 10.799999
+pidError: 12.000000 pidIntegral: 465.527100  pidDerivative: 0.000000  
+pidDrive: 10.799999 PID: 10.799999 0.000000 0.000000
+FL Dir: 1 FL Power: 10.799999 BL Di
+
+<<<***    864/ 11013 Chars Overrun (incremental/total) [10]***>>>
+
+dDerivative: 0.000000  
+pidDrive: 10.799999 PID: 10.799999 0.000000 0.000000
+FL Dir: 1 FL Power: 10.799999 BL Dir: 6 BL Power: 10.799999 FR Dir: 5 FR Power: 10.799999 BR Dir: 2 BR Power: 10.7
+
+<<<***    598/ 11611 Chars Overrun (incremental/total) [11]***>>>
+
+9 0.000000 0.000000
+FL Dir: 1 FL Power: 10.799999 BL Dir: 6 BL Power: 10.799999 FR Dir: 5 FR Power: 10.799999 BR Dir: 2 BR Power: 10.799999
+pidError: 12.000000 pidIntegral: 396.523682  pidDer
+
+<<<***    861/ 12472 Chars Overrun (incremental/total) [12]***>>>
+
+999 FR Dir: 5 FR Power: 10.799999 BR Dir: 2 BR Power: 10.799999
+pidError: 12.000000 pidIntegral: 370.900055  pidDerivative: 0.000000  
+pidDrive: 10.799999 PID: 10.799999 0.000000 0.000000
+FL 
+
+<<<***   1124/ 13596 Chars Overrun (incremental/total) [13]***>>>
+
+ Power: -127.000000 BR Dir: 2 BR Power: -127.000000
+pidError: -1033.000000 pidIntegral: -4599.732910  pidDerivative: 27.000000  
+pidDrive: -127.000000 PID: -929.699951 -0.000000 27.000000
+FL 
+
+<<<***    598/ 14194 Chars Overrun (incremental/total) [14]***>>>
+
+FR Power: -127.000000 BR Dir: 2 BR Power: -127.000000
+pidError: -967.500000 pidIntegral: -6803.575684  pidDerivative: 24.000000  
+pidDrive: -127.000000 PID: -870.750000 -0.000000 24.000000
+FL
+
+<<<***    861/ 15055 Chars Overrun (incremental/total) [15]***>>>
+
+FR Power: -127.000000 BR Dir: 2 BR Power: -127.000000
+pidError: -867.000000 pidIntegral: -8000.000000  pidDerivative: 25.000000  
+pidDrive: -127.000000 PID: -780.299988 -0.000000 25.000000
+FL
+
+<<<***    598/ 15653 Chars Overrun (incremental/total) [16]***>>>
+
+FR Power: -127.000000 BR Dir: 2 BR Power: -127.000000
+pidError: -786.500000 pidIntegral: -8000.000000  pidDerivative: 28.000000  
+pidDrive: -127.000000 PID: -707.849976 -0.000000 28.000000
+FL
+
+<<<***    861/ 16514 Chars Overrun (incremental/total) [17]***>>>
+
+FR Power: -127.000000 BR Dir: 2 BR Power: -127.000000
+pidError: -673.000000 pidIntegral: -8000.000000  pidDerivative: 27.500000  
+pidDrive: -127.000000 PID: -605.700012 -0.000000 27.500000
+FL
+
+<<<***    861/ 17375 Chars Overrun (incremental/total) [18]***>>>
+
+FR Power: -127.000000 BR Dir: 2 BR Power: -127.000000
+pidError: -557.000000 pidIntegral: -8000.000000  pidDerivative: 28.500000  
+pidDrive: -127.000000 PID: -501.299988 -0.000000 28.500000
+FL
+
+<<<***    579/ 17954 Chars Overrun (incremental/total) [19]***>>>
+
+7.000000 FR Dir: 5 FR Power: -127.000000 BR Dir: 2 BR Power: -127.000000
+pidError: -470.000000 pidIntegral: -8000.000000  pidDerivative: 30.000000  
+pidDrive: -127.000000 PID: -423.000000 -0.
+
+<<<***    803/ 18757 Chars Overrun (incremental/total) [20]***>>>
+
+00
+FL Dir: 1 FL Power: -127.000000 BL Dir: 6 BL Power: -127.000000 FR Dir: 5 FR Power: -127.000000 BR Dir: 2 BR Power: -127.000000
+pidError: -356.000000 pidIntegral: -7975.047852  pidDerivati
+
+<<<***    801/ 19558 Chars Overrun (incremental/total) [21]***>>>
+
+0  
+pidDrive: -127.000000 PID: -241.649994 -0.000000 30.000000
+FL Dir: 1 FL Power: -127.000000 BL Dir: 6 BL Power: -127.000000 FR Dir: 5 FR Power: -127.000000 BR Dir: 2 BR Power: -127.000000
+
+
+<<<***   1044/ 20602 Chars Overrun (incremental/total) [22]***>>>
+
+.099991
+pidError: -125.000000 pidIntegral: -6881.027832  pidDerivative: 29.000000  
+pidDrive: -83.500000 PID: -112.500000 -0.000000 29.000000
+FL Dir: 1 FL Power: -83.500000 BL Dir: 6 BL Power
+
+<<<***    556/ 21158 Chars Overrun (incremental/total) [23]***>>>
+
+BR Dir: 2 BR Power: -31.849998
+pidError: -15.500000 pidIntegral: -5856.108887  pidDerivative: 24.000000  
+pidDrive: 10.050000 PID: -13.950000 -0.000000 24.000000
+FL Dir: 1 FL Power: 10.050000 BL Dir: 6 BL Power: 10.050000 FR Dir: 5 FR Power: 10.050000 BR Dir: 2 BR Power: 10.050000
+pidError: 7.000000 pidIntegral: -5570.246582  pidDerivative: 22.500000  
+pidDrive: 28.799999 PID: 6.300000 -0.000000 22.500000
+FL Dir: 1 FL Power: 28.799999 BL Dir: 6 BL Power: 28.799999 FR Dir: 5 FR Power: 28.799999 BR Dir: 2 BR Power: 28.799999
+pidError: 22.500000 pidIntegral: -5282.497070  pidDerivative: 15.500000  
+pidDrive: 35.750000 PID: 20.250000 -0.000000 15.500000
+FL Dir: 1 FL Power: 35.750000 BL Dir: 6 BL Power: 35.750000 FR Dir: 5 FR Power: 35.750000 BR Dir: 2 BR Power: 35.750000
+pidError: 22.500000 pidIntegral: -5008.449707  pidDerivative: 0.000000  
+pidDrive: 20.250000 PID: 20.250000 -0.000000 0.000000
+FL Dir: 1 FL Power: 20.250000 BL Dir: 6 BL Power: 20.250000 FR Dir: 5 FR Power: 20.250000 BR Dir: 2 BR Power: 20.250000
+pidError: 17.500000 pidIntegral: -4752.452148  pidDerivative: -5.000000  
+pidDrive: 10.750000 PID: 15.750000 -0.000000 -5.000000
+FL Dir: 1 FL Power: 10.750000 BL Dir: 6 BL Power: 10.750000 FR Dir: 5 FR Power: 10.750000 BR Dir: 2 BR Power: 10.750000
+pidError: 16.500000 pidIntegral: -4509.645020  pidDerivative: -1.000000  
+pidDrive: 13.849999 PID: 14.849999 -0.000000 -1.000000
+FL Dir: 1 FL Power: 13.849999 BL Dir: 6 BL Power: 13.849999 FR Dir: 5 FR Power: 13.849999 BR Dir: 2 BR Power: 13.849999
+pidError: 21.000000 pidIntegral: -4273.900391  pidDerivative: 4.500000  
+pidDrive: 23.400000 PID: 18.900000 -0.000000 4.500000
+FL Dir: 1 FL Power: 23.400000 BL Dir: 6 BL Power: 23.400000 FR Dir: 5 FR Power: 23.400000 BR Dir: 2 BR Power: 23.400000
+pidError: 26.500000 pidIntegral: -4043.881592  pidDerivative: 5.500000  
+pidDrive: 29.349998 PID: 23.849998 -0.000000 5.500000
+FL Dir: 1 FL Power: 29.349998 BL Dir: 6 BL Power: 29.349998 FR Dir: 5 FR Power: 29.349998 BR Dir: 2 BR Power: 29.349998
+pidError: 29.500000 pidIntegral: -3821.815918  pidDerivative: 3.000000  
+pidDrive: 29.549999 PID: 26.549999 -0.000000 3.000000
+FL Dir: 1 FL Power: 29.549999 BL Dir: 6 BL Power: 29.549999 FR Dir: 5 FR Power: 29.549999 BR Dir: 2 BR Power: 29.549999
+pidError: 29.500000 pidIntegral: -3610.324951  pidDerivative: 0.000000  
+pidDrive: 26.549999 PID: 26.549999 -0.000000 0.000000
+FL Dir: 1 FL Power: 26.549999 BL Dir: 6 BL Power: 26.549999 FR Dir: 5 FR Power: 26.549999 BR Dir: 2 BR Power: 26.549999
+pidError: 29.500000 pidIntegral: -3408.904785  pidDerivative: 0.000000  
+pidDrive: 26.549999 PID: 26.549999 -0.000000 0.000000
+FL Dir: 1 FL Power: 26.549999 BL Dir: 6 BL Power: 26.549999 FR Dir: 5 FR Power: 26.549999 BR Dir: 2 BR Power: 26.549999
+pidError: 29.500000 pidIntegral: -3217.076172  pidDerivative: 0.000000  
+pidDrive: 26.549999 PID: 26.549999 -0.000000 0.000000
+FL Dir: 1 FL Power: 26.549999 BL Dir: 6 BL Power: 26.549999 FR Dir: 5 FR Power: 26.549999 BR Dir: 2 BR Power: 26.549999
+pidError: 29.500000 pidIntegral: -3034.382324  pidDerivative: 0.000000  
+pidDrive: 26.549999 PID: 26.549999 -0.000000 0.000000
+FL Dir: 1 FL Power: 26.549999 BL Dir: 6 BL Power: 26.549999 FR Dir: 5 FR Power: 26.549999 BR Dir: 2 BR Power: 26.549999
+pidError: 29.000000 pidIntegral: -2860.887939  pidDerivative: -0.500000  
+pidDrive: 25.599998 PID: 26.099998 -0.000000 -0.500000
+FL Dir: 1 FL Power: 25.599998 BL Dir: 6 BL Power: 25.599998 FR Dir: 5 FR Power: 25.599998 BR Dir: 2 BR Power: 25.599998
+pidError: 26.000000 pidIntegral: -2698.655273  pidDerivative: -3.000000  
+pidDrive: 20.400000 PID: 23.400000 -0.000000 -3.000000
+FL Dir: 1 FL Power: 20.400000 BL Dir: 6 BL Power: 20.400000 FR Dir: 5 FR Power: 20.400000 BR Dir: 2 BR Power: 20.400000
+pidError: 21.000000 pidIntegral: -2549.147949  pidDerivative: -5.000000  
+pidDrive: 13.900000 PID: 18.900000 -0.000000 -5.000000
+FL Dir: 1 FL Power: 13.900000 BL Dir: 6 BL Power: 13.900000 FR Dir: 5 FR Power: 13.900000 BR Dir: 2 BR Power: 13.900000
+pidError: -1100.000000 pidDrive: -127.000000 PID: -990.000000 -0.000000 -1100.000000
+pidError: -1100.000000 pidDrive: -127.000000 PID: -990.000000 -0.000000 0.000000
+pidError: -1093.000000 pidDrive: -127.000000 PID: -983.699951 -0.000000 7.000000
+pidError: -1076.500000 pidDrive: -127.000000 PID: -968.849976 -0.000000 16.500000
+pidError: -1060.000000 pidDrive: -127.000000 PID: -954.000000 -0.000000 16.500000
+pidError: -1042.500000 pidDrive: -127.000000 PID: -938.250000 -0.000000 17.500000
+pidError: -1023.000000 pidDrive: -127.000000 PID: -920.699951 -0.000000 19.500000
+pidError: -1000.000000 pidDrive: -127.000000 PID: -900.000000 -0.000000 23.000000
+pidError: -976.500000 pidDrive: -127.000000 PID: -878.849976 -0.000000 23.500000
+pidError: -952.500000 pidDrive: -127.000000 PID: -857.250000 -0.000000 24.000000
+pidError: -929.500000 pidDrive: -127.000000 PID: -836.549988 -0.000000 23.000000
+pidError: -905.500000 pidDrive: -127.000000 PID: -814.949951 -0.000000 24.000000
+pidError: -881.000000 pidDrive: -127.000000 PID: -792.899963 -0.000000 24.500000
+pidError: -854.000000 pidDrive: -127.000000 PID: -768.599976 -0.000000 27.000000
+pidError: -826.000000 pidDrive: -127.000000 PID: -743.399963 -0.000000 28.000000
+pidError: -800.000000 pidDrive: -127.000000 PID: -720.000000 -0.000000 26.000000
+pidError: -772.500000 pidDrive: -127.000000 PID: -695.250000 -0.000000 27.500000
+pidError: -743.500000 pidDrive: -127.000000 PID: -669.149963 -0.000000 29.000000
+pidError: -714.500000 pidDrive: -127.000000 PID: -643.049988 -0.000000 29.000000
+pidError: -686.000000 pidDrive: -127.000000 PID: -617.399963 -0.000000 28.500000
+pidError: -658.000000 pidDrive: -127.000000 PID: -592.200012 -0.000000 28.000000
+pidError: -629.000000 pidDrive: -127.000000 PID: -566.099976 -0.000000 29.000000
+pidError: -600.000000 pidDrive: -127.000000 PID: -540.000000 -0.000000 29.000000
+pidError: -570.500000 pidDrive: -127.000000 PID: -513.450012 -0.000000 29.500000
+pidError: -542.000000 pidDrive: -127.000000 PID: -487.799988 -0.000000 28.500000
+pidError: -512.000000 pidDrive: -127.000000 PID: -460.799988 -0.000000 30.000000
+pidError: -484.500000 pidDrive: -127.000000 PID: -436.049988 -0.000000 27.500000
+pidError: -455.500000 pidDrive: -127.000000 PID: -409.949982 -0.000000 29.000000
+pidError: -426.000000 pidDrive: -127.000000 PID: -383.399994 -0.000000 29.500000
+pidError: -395.000000 pidDrive: -127.000000 PID: -355.500000 -0.000000 31.000000
+pidError: -367.500000 pidDrive: -127.000000 PID: -330.750000 -0.000000 27.500000
+pidError: -338.500000 pidDrive: -127.000000 PID: -304.649994 -0.000000 29.000000
+pidError: -311.000000 pidDrive: -127.000000 PID: -279.899994 -0.000000 27.500000
+pidError: -283.000000 pidDrive: -127.000000 PID: -254.699997 -0.000000 28.000000
+pidError: -255.000000 pidDrive: -127.000000 PID: -229.500000 -0.000000 28.000000
+pidError: -228.000000 pidDrive: -127.000000 PID: -205.199997 -0.000000 27.000000
+pidError: -200.500000 pidDrive: -127.000000 PID: -180.449997 -0.000000 27.500000
+pidError: -171.500000 pidDrive: -125.349991 PID: -154.349991 -0.000000 29.000000
+pidError: -143.500000 pidDrive: -101.149994 PID: -129.149994 -0.000000 28.000000
+pidError: -117.000000 pidDrive: -78.799995 PID: -105.299995 -0.000000 26.500000
+pidError: -89.500000 pidDrive: -53.049995 PID: -80.549995 -0.000000 27.500000
+pidError: -60.500000 pidDrive: -25.449997 PID: -54.449997 -0.000000 29.000000
+pidError: -8.500000 pidDrive: 17.850000 PID: -7.650000 -0.000000 25.500000
+pidError: 14.500000 pidDrive: 36.049999 PID: 13.049999 -0.000000 23.000000
+pidError: 23.500000 pidDrive: 30.150000 PID: 21.150000 -0.000000 9.000000
+pidError: 21.000000 pidDrive: 16.400000 PID: 18.900000 -0.000000 -2.500000
+pidError: 18.500000 pidDrive: 14.150000 PID: 16.650000 -0.000000 -2.500000
+pidError: 21.000000 pidDrive: 21.400000 PID: 18.900000 -0.000000 2.500000
+pidError: 26.500000 pidDrive: 29.349998 PID: 23.849998 -0.000000 5.500000
+pidError: 30.500000 pidDrive: 31.449999 PID: 27.449999 -0.000000 4.000000
+pidError: 32.500000 pidDrive: 31.250000 PID: 29.250000 -0.000000 2.000000
+pidError: 33.000000 pidDrive: 30.199999 PID: 29.699999 -0.000000 0.500000
+pidError: 33.000000 pidDrive: 29.699999 PID: 29.699999 -0.000000 0.000000
+pidError: 32.000000 pidDrive: 27.799999 PID: 28.799999 -0.000000 -1.000000
+pidError: 28.500000 pidDrive: 22.150000 PID: 25.650000 -0.000000 -3.500000
+pidError: 21.500000 pidDrive: 12.350000 PID: 19.350000 -0.000000 -7.000000
+pidError: 280.000000 pidDrive: 80.000000 PID: 252.000000 -0.000000 285.500000
+pidError: 280.000000 pidDrive: 80.000000 PID: 252.000000 -0.000000 0.000000
+pidError: 270.500000 pidDrive: 80.000000 PID: 243.449997 -0.000000 -9.500000
+pidError: 249.500000 pidDrive: 80.000000 PID: 224.549988 0.000000 -21.000000
+pidError: 226.500000 pidDrive: 80.000000 PID: 203.849991 0.000000 -23.000000
+pidError: 208.500000 pidDrive: 80.000000 PID: 187.649994 0.000000 -18.000000
+pidError: 196.500000 pidDrive: 80.000000 PID: 176.849991 0.000000 -12.000000
+pidError: 185.500000 pidDrive: 80.000000 PID: 166.949997 0.000000 -11.000000
+pidError: 172.500000 pidDrive: 80.000000 PID: 155.250000 0.000000 -13.000000
+pidError: 155.000000 pidDrive: 80.000000 PID: 139.500000 0.000000 -17.500000
+pidError: 135.000000 pidDrive: 80.000000 PID: 121.500000 0.000000 -20.000000
+pidError: 112.500000 pidDrive: 78.750000 PID: 101.250000 0.000000 -22.500000
+pidError: 90.000000 pidDrive: 58.500000 PID: 81.000000 0.000000 -22.500000
+pidError: 66.500000 pidDrive: 36.349998 PID: 59.849998 0.000000 -23.500000
+pidError: 42.500000 pidDrive: 14.250000 PID: 38.250000 0.000000 -24.000000
+pidError: -1.000000 pidDrive: -21.400000 PID: -0.900000 0.000000 -20.500000
+pidError: -20.000000 pidDrive: -37.000000 PID: -18.000000 0.000000 -19.000000
+pidError: -29.500000 pidDrive: -36.049999 PID: -26.549999 0.000000 -9.500000
+pidError: -24.500000 pidDrive: -17.049999 PID: -22.049999 0.000000 5.000000
+pidError: -17.000000 pidDrive: -15.299999 PID: -15.299999 0.000000 0.000000
+pidError: -16.500000 pidDrive: -14.349999 PID: -14.849999 0.000000 0.500000
+pidError: -15.000000 pidDrive: -12.000000 PID: -13.500000 0.000000 1.500000
+pidError: -13.500000 pidDrive: -10.650000 PID: -12.150000 0.000000 1.500000
+pidError: -1105.000000 pidDrive: -120.250000 PID: -994.500000 -0.000000 -1112.500000
+pidError: -1104.500000 pidDrive: -127.000000 PID: -994.049988 -0.000000 0.500000
+pidError: -1089.000000 pidDrive: -127.000000 PID: -980.099976 -0.000000 15.500000
+pidError: -1064.000000 pidDrive: -127.000000 PID: -957.599976 -0.000000 25.000000
+pidError: -1100.000000 pidDrive: -127.000000 PID: -990.000000 -0.000000 -1100.000000
+pidError: -1098.500000 pidDrive: -127.000000 PID: -988.649963 -0.000000 1.500000
+pidError: -1083.000000 pidDrive: -127.000000 PID: -974.699951 -0.000000 15.500000
+pidError: -1063.000000 pidDrive: -127.000000 PID: -956.699951 -0.000000 20.000000
+pidError: -1046.500000 pidDrive: -127.000000 PID: -941.849976 -0.000000 16.500000
+pidError: -1029.000000 pidDrive: -127.000000 PID: -926.099976 -0.000000 17.500000
+pidError: -1008.000000 pidDrive: -127.000000 PID: -907.199951 -0.000000 21.000000
+pidError: -986.500000 pidDrive: -127.000000 PID: -887.849976 -0.000000 21.500000
+pidError: -965.500000 pidDrive: -127.000000 PID: -868.949951 -0.000000 21.000000
+pidError: -943.500000 pidDrive: -127.000000 PID: -849.149963 -0.000000 22.000000
+pidError: -921.000000 pidDrive: -127.000000 PID: -828.899963 -0.000000 22.500000
+pidError: -895.500000 pidDrive: -127.000000 PID: -805.949951 -0.000000 25.500000
+pidError: -868.500000 pidDrive: -127.000000 PID: -781.649963 -0.000000 27.000000
+pidError: -841.000000 pidDrive: -127.000000 PID: -756.899963 -0.000000 27.500000
+pidError: -813.500000 pidDrive: -127.000000 PID: -732.149963 -0.000000 27.500000
+pidError: -785.500000 pidDrive: -127.000000 PID: -706.949951 -0.000000 28.000000
+pidError: -757.500000 pidDrive: -127.000000 PID: -681.750000 -0.000000 28.000000
+pidError: -729.500000 pidDrive: -127.000000 PID: -656.549988 -0.000000 28.000000
+pidError: -701.000000 pidDrive: -127.000000 PID: -630.899963 -0.000000 28.500000
+pidError: -672.000000 pidDrive: -127.000000 PID: -604.799988 -0.000000 29.000000
+pidError: -644.500000 pidDrive: -127.000000 PID: -580.049988 -0.000000 27.500000
+pidError: -616.000000 pidDrive: -127.000000 PID: -554.399963 -0.000000 28.500000
+pidError: -587.000000 pidDrive: -127.000000 PID: -528.299988 -0.000000 29.000000
+pidError: -558.000000 pidDrive: -127.000000 PID: -502.199982 -0.000000 29.000000
+pidError: -529.000000 pidDrive: -127.000000 PID: -476.099976 -0.000000 29.000000
+pidError: -501.500000 pidDrive: -127.000000 PID: -451.349976 -0.000000 27.500000
+pidError: -473.000000 pidDrive: -127.000000 PID: -425.699982 -0.000000 28.500000
+pidError: -444.500000 pidDrive: -127.000000 PID: -400.049988 -0.000000 28.500000
+pidError: -415.000000 pidDrive: -127.000000 PID: -373.500000 -0.000000 29.500000
+pidError: -387.000000 pidDrive: -127.000000 PID: -348.299988 -0.000000 28.000000
+pidError: -359.500000 pidDrive: -127.000000 PID: -323.549988 -0.000000 27.500000
+pidError: -331.000000 pidDrive: -127.000000 PID: -297.899994 -0.000000 28.500000
+pidError: -303.000000 pidDrive: -127.000000 PID: -272.699982 -0.000000 28.000000
+pidError: -273.500000 pidDrive: -127.000000 PID: -246.149994 -0.000000 29.500000
+pidError: -246.000000 pidDrive: -127.000000 PID: -221.399994 -0.000000 27.500000
+pidError: -218.500000 pidDrive: -127.000000 PID: -196.649994 -0.000000 27.500000
+pidError: -191.500000 pidDrive: -127.000000 PID: -172.349991 -0.000000 27.000000
+pidError: -162.500000 pidDrive: -117.250000 PID: -146.250000 -0.000000 29.000000
+pidError: -134.000000 pidDrive: -92.099998 PID: -120.599998 -0.000000 28.500000
+pidError: -107.000000 pidDrive: -69.299995 PID: -96.299995 -0.000000 27.000000
+pidError: -79.500000 pidDrive: -44.049995 PID: -71.549995 -0.000000 27.500000
+pidError: -51.000000 pidDrive: -17.399998 PID: -45.899998 -0.000000 28.500000
+pidError: -1.000000 pidDrive: 22.600000 PID: -0.900000 -0.000000 23.500000
+pidError: 22.500000 pidDrive: 43.750000 PID: 20.250000 -0.000000 23.500000
+pidError: 32.500000 pidDrive: 39.250000 PID: 29.250000 -0.000000 10.000000
+pidError: 27.000000 pidDrive: 18.799999 PID: 24.299999 -0.000000 -5.500000
+pidError: 21.000000 pidDrive: 12.900000 PID: 18.900000 -0.000000 -6.000000
+pidError: 23.000000 pidDrive: 22.699999 PID: 20.699999 -0.000000 2.000000
+pidError: 28.500000 pidDrive: 31.150000 PID: 25.650000 -0.000000 5.500000
+pidError: 33.500000 pidDrive: 35.150002 PID: 30.150000 -0.000000 5.000000
+pidError: 35.000000 pidDrive: 33.000000 PID: 31.500000 -0.000000 1.500000
+pidError: 35.000000 pidDrive: 31.500000 PID: 31.500000 -0.000000 0.000000
+pidError: 34.500000 pidDrive: 30.549999 PID: 31.049999 -0.000000 -0.500000
+pidError: 32.500000 pidDrive: 27.250000 PID: 29.250000 -0.000000 -2.000000
+pidError: 27.500000 pidDrive: 19.750000 PID: 24.750000 -0.000000 -5.000000
+pidError: 21.500000 pidDrive: 13.350000 PID: 19.350000 -0.000000 -6.000000
