@@ -887,13 +887,15 @@ void do_programming_skills(int x_offset, int y_offset) {
 	motor[backRight] = 100;
 	motor[frontLeft] = 100;
 	motor[frontRight] = 100;
-	wait1Msec(400);
+	wait1Msec(300);
 
 	// Now zero out Drive sensors and restart Drive PID
 	motor[backLeft] = 0;
 	motor[backRight] = 0;
 	motor[frontLeft] = 0;
 	motor[frontRight] = 0;
+
+	wait1Msec(100);
 
 	resetMotorEncoder(backLeft);
 	resetMotorEncoder(backRight);
@@ -908,7 +910,10 @@ void do_programming_skills(int x_offset, int y_offset) {
 	wait_for_move_done(920 + SKY3_Y_OFFSET);
 	wait_for_slide_done();
 	move('b', 280, 127);
-	move('l', 100 - SKY3_X_OFFSET, 127);
+
+	if (100 - SKY3_X_OFFSET != 0){
+		signed_move('l', 100 - SKY3_X_OFFSET, 127);
+	}
 
 // deliver 3rd skyrise
 	move_slide_to_position(1250);
@@ -933,10 +938,10 @@ void do_programming_skills(int x_offset, int y_offset) {
 	// pick up 4th skyrise
 	move_slide_to_position(1000);
 	wait_for_slide_done();
-	start_move('b', 1225, 127);
+	start_move('b', 1250, 127);
 	move_arm_to_position(490);
-	wait_for_move_done(1225);
-	move('l', 100, 127);
+	wait_for_move_done(1250);
+	move('l', 130, 127);
 	move_slide_to_position(530);
 	wait_for_slide_done();
 	move('b', 200, 127);
@@ -976,8 +981,11 @@ void do_programming_skills(int x_offset, int y_offset) {
 	// Crash into pyramid
 	turn('a', 875, 127);
 
-	move('b', 4500, 127);
-//	move('f', 4800, 127);
+	move('b', 4450, 127);
+	move('f', 2500, 127);
+	turn('c', 950, 127);
+	move('f', 2400, 127);
+	move('b', 300, 127);
 
 	return;
 
@@ -1214,6 +1222,8 @@ void do_programming_skills_part2(){
 	// Crash into pyramid
 	turn('a', 250, 127);
 	move('b', 8000, 127);
+
+	move('f', 700, 127);
 	return;
 
 
