@@ -98,8 +98,8 @@
 #define SKY1_X_OFFSET 0
 #define SKY1_Y_OFFSET 0
 #define SKY2_X_OFFSET 0
-#define SKY2_Y_OFFSET 0
-#define SKY3_X_OFFSET 0
+#define SKY2_Y_OFFSET 25
+#define SKY3_X_OFFSET -50
 #define SKY3_Y_OFFSET 0
 
 int motor_index[4];
@@ -796,6 +796,7 @@ void do_programming_skills(int x_offset, int y_offset) {
 	move_slide_to_position(450);
 	wait_for_move_done(600 + SKY1_Y_OFFSET);
 	signed_move('l', 110 - SKY1_X_OFFSET, 127);
+	wait1Msec(100);
 	move('b', 475, 127);
 	wait1Msec(300);
 	wait_for_slide_done();
@@ -854,7 +855,7 @@ void do_programming_skills(int x_offset, int y_offset) {
 	move('f', 1220, 127);
 
 	// Turn, Backup and Lower Slide to deliver two cubes
-	move('c', 675, 127);
+	move('c', 700, 127);
 	wait_for_slide_done();
 	move('b', 400, 127);
 	move_slide_to_position(400);
@@ -863,8 +864,8 @@ void do_programming_skills(int x_offset, int y_offset) {
 
 	// Release cubes and turn towards wall
 	move('f', 375 + SKY2_Y_OFFSET, 127);
-	move('a', 675, 127);
-	move('l', 140 + SKY2_X_OFFSET, 127);
+	move('a', 700, 127);
+	move('l', 140 + 30 + SKY2_X_OFFSET, 127);
 	move('b', 50, 127);
 
 	//
@@ -910,7 +911,7 @@ void do_programming_skills(int x_offset, int y_offset) {
 	wait_for_move_done(920 + SKY3_Y_OFFSET);
 	wait_for_slide_done();
 	move('b', 280, 127);
-
+	wait1Msec(100);
 	if (100 - SKY3_X_OFFSET != 0){
 		signed_move('l', 100 - SKY3_X_OFFSET, 127);
 	}
@@ -927,7 +928,7 @@ void do_programming_skills(int x_offset, int y_offset) {
 	move('l', SKY3_Y_OFFSET, 127);
 	move('f', 760 + SKY3_Y_OFFSET, 127);
 	move('a', 50, 127);
-	move('l', 125, 127);
+	move('l', 175, 127);
 	move_arm_to_position(0);
 	wait1Msec(100);
 	move('f', 490, 127);
@@ -941,7 +942,7 @@ void do_programming_skills(int x_offset, int y_offset) {
 	start_move('b', 1250, 127);
 	move_arm_to_position(490);
 	wait_for_move_done(1250);
-	move('l', 130, 127);
+	move('l', 160, 127);
 	move_slide_to_position(530);
 	wait_for_slide_done();
 	move('b', 200, 127);
@@ -957,25 +958,29 @@ void do_programming_skills(int x_offset, int y_offset) {
 	wait_for_move_done(200);
 	wait_for_slide_done();
 	wait1Msec(200);
+	move('l', 120, 127);
 	move('f', 455, 127);
 	wait1Msec(200);
 	move_slide_to_position(950);
 	wait_for_slide_done();
 
 	// Move back to deliver 5th skyrise
-	start_move('b', 1030, 127);
+	start_move('b', 965, 127); //decreased by 30 to adjust for bellarmine field
 	move_arm_to_position(650);
 	move_slide_to_position(1300);
-	wait_for_move_done(1030);
+	wait_for_move_done(965);
 	wait_for_arm_done();
 	wait_for_slide_done();
+
 	wait1Msec(750);
+
+	move('l', 95, 127);
 	move_slide_to_position(800);
 	wait_for_slide_done();
 
 	move('b', 1020, 127);
 	move('l', 450, 127);
-	move('b', 2000, 127);
+	move('b', 1700, 127); //decreased by 300 to adjust for bellarmine field
 
 	move_slide_to_position(0);
 	// Crash into pyramid
