@@ -1,5 +1,4 @@
 
-
 #pragma config(UART_Usage, UART1, uartVEXLCD, baudRate19200, IOPins, None, None)
 #pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
 #pragma config(I2C_Usage, I2C1, i2cSensors)
@@ -770,6 +769,8 @@ void do_autonomous_red_skyrise(int x_offset, int y_offset) {
 
 void do_programming_skills(int x_offset, int y_offset) {
 
+
+
 	// delivers two skyrises and two cubes
 	// beginning of the programming skills program as of 1/16/2015
 	// will add the end section (do_autonomous_red_skyrise) later
@@ -978,19 +979,11 @@ void do_programming_skills(int x_offset, int y_offset) {
 	move_slide_to_position(800);
 	wait_for_slide_done();
 
-	move('b', 1020, 127);
-	move('l', 450, 127);
-	move('b', 1700, 127); //decreased by 300 to adjust for bellarmine field
+	move('b', 2500, 127);
+	move('l', 1200, 127);
+	move('f', 1500, 127);
+	move('b', 1000, 127);
 
-	move_slide_to_position(0);
-	// Crash into pyramid
-	turn('a', 875, 127);
-
-	move('b', 4450, 127);
-	move('f', 2500, 127);
-	turn('c', 950, 127);
-	move('f', 2400, 127);
-	move('b', 300, 127);
 
 	return;
 
@@ -1724,7 +1717,7 @@ task autonomous()
 		do_programming_skills(0,0);
 		break;
 	case    1:
-		do_A_only();
+		do_programming_skills(0,0);
 		break;
 	case    2:
 		do_autonomous_blue_skyrise(0, 0);
