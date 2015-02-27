@@ -1724,7 +1724,7 @@ task autonomous()
 		do_programming_skills(0,0);
 		break;
 	case    1:
-		do_autonomous_red_cube_only();
+		do_A_only();
 		break;
 	case    2:
 		do_autonomous_blue_skyrise(0, 0);
