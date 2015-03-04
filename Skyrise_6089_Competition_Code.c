@@ -94,8 +94,8 @@
 #define BR	3
 
 // Constants for programming skills
-#define SKY1_X_OFFSET 0
-#define SKY1_Y_OFFSET 0
+#define SKY1_X_OFFSET -50
+#define SKY1_Y_OFFSET -50
 #define SKY2_X_OFFSET 0
 #define SKY2_Y_OFFSET 25
 #define SKY3_X_OFFSET -50
@@ -1359,7 +1359,22 @@ void do_autonomous_blue_cube_only() {
 }
 
 void do_autonomous_red_cube_only() {
-	move('r', 280, 127);
+	move('f', 680, 127);
+	move_slide_to_position(1810);
+	move_arm_to_position(605);
+	wait_for_slide_done();
+	wait_for_arm_done();
+
+	move('f', 725, 127);
+	turn('c', 1350, 127);
+
+	move('f', 150, 127);
+	move_slide_to_position(300);
+	wait_for_slide_done();
+	move('b', 400, 127);
+
+
+/*move('r', 280, 127);
 	move_slide_to_position(1710);
 	move('b', 1650, 127);
 	wait_for_slide_done();
@@ -1369,7 +1384,7 @@ void do_autonomous_red_cube_only() {
 	turn('a', 1405, 100);
 	move_slide_to_position(700);
 	wait_for_slide_done();
-	move('b', 400, 127);
+	move('b', 400, 127);*/
 
 }
 ///////////////////////////////
@@ -1390,8 +1405,9 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 	//
 
 	// Raise slide to release Skyrise Intakes
-	move_slide_to_position(445);
+	move_slide_to_position(425);
 	wait_for_slide_done();
+
 
 	// Move forward to grab first Skyrise
 	move('f', 265, 80);
@@ -1403,9 +1419,9 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 
 	// Move back to Skyrise delivery point
 	// At same time lower slide so Skyrise is just above Delivery target
-	start_move('b', 600 + SKY1_Y_OFFSET, 127); //also defining skyrise 1 for accuracy
+	start_move('b', 600 + 65 + SKY1_Y_OFFSET, 127); //also defining skyrise 1 for accuracy
 	move_slide_to_position(450);
-	wait_for_move_done(600 + SKY1_Y_OFFSET);
+	wait_for_move_done(600 + 65 + SKY1_Y_OFFSET);
 	signed_move('r', 110 - SKY1_X_OFFSET, 127);
 	wait1Msec(100);
 	move('b', 475, 127);
@@ -1413,6 +1429,8 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 	wait_for_slide_done();
 
 	// Lower slide to deliver First Skyrise
+	return;
+
 	move_slide_to_position(0);
 	wait_for_slide_done();
 
@@ -1434,7 +1452,7 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 	wait_for_move_done(1125);
 
 	// Turn, Backup and Lower Slide to deliver two cubes
-	move('a', 650, 127);
+	move('a', 685, 127);
 	wait_for_slide_done();
 	move('b', 400, 127);
 	move_slide_to_position(0);
@@ -1443,7 +1461,7 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 
 	// Release cubes and turn towards wall
 	move('f', 375 + SKY2_Y_OFFSET, 127);
-	move('c', 650, 127);
+	move('c', 685, 127);
 	move('r', 140 + 30 + SKY2_X_OFFSET, 127);
 	move('b', 50, 127);
 	move_arm_to_position(0);
@@ -1710,7 +1728,7 @@ task autonomous()
 
 	switch( MyAutonomous ) {
 	case    0:
-		do_autonomous_blue_skyrise(0,0);
+		do_autonomous_red_cube_only();
 		break;
 	case    1:
 		do_autonomous_red_cube_only();
