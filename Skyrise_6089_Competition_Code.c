@@ -94,11 +94,11 @@
 #define BR	3
 
 // Constants for programming skills
-#define SKY1_X_OFFSET -50
-#define SKY1_Y_OFFSET -50
+#define SKY1_X_OFFSET 0 //-50
+#define SKY1_Y_OFFSET 0
 #define SKY2_X_OFFSET 0
-#define SKY2_Y_OFFSET 25
-#define SKY3_X_OFFSET -50
+#define SKY2_Y_OFFSET 0
+#define SKY3_X_OFFSET 0
 #define SKY3_Y_OFFSET 0
 
 int motor_index[4];
@@ -733,7 +733,7 @@ void do_autonomous_red_skyrise(int x_offset, int y_offset) {
 	// Move back a bit and then raise slide to pick up second cube
 	move('b', 325, 55);
 	wait1Msec(100);
-	move_slide_to_position(425);
+	move_slide_to_position(450);
 	wait_for_slide_done();
 
 	// Raise slide so that both cubes are above 2 skyrises
@@ -755,8 +755,8 @@ void do_autonomous_red_skyrise(int x_offset, int y_offset) {
 	move('f', 375 + SKY2_Y_OFFSET, 127);
 	move('a', 650, 127);
 	move('l', 140 + 30 + SKY2_X_OFFSET, 127);
-	move('b', 50, 127);
-	move_arm_to_position(0);
+	//move('b', 50, 127);
+	//move_arm_to_position(0);
 	wait_for_arm_done();
 
 }
@@ -1358,33 +1358,37 @@ void do_autonomous_blue_cube_only() {
 
 }
 
-void do_autonomous_red_cube_only() {
+void do_autonomous_red_cubes_only() {
 	move('f', 680, 127);
+	move_slide_to_position(600);
+	wait_for_slide_done();
 	move_slide_to_position(1810);
 	move_arm_to_position(605);
-	wait_for_slide_done();
 	wait_for_arm_done();
-
-	move('f', 725, 127);
-	turn('c', 1350, 127);
-
-	move('f', 150, 127);
-	move_slide_to_position(300);
+	move('f', 500, 127);
+	wait_for_slide_done();
+	turn('c', 850, 127);
+	move('f', 200, 127);
+	move_slide_to_position(200);
 	wait_for_slide_done();
 	move('b', 400, 127);
+}
 
 
-/*move('r', 280, 127);
-	move_slide_to_position(1710);
-	move('b', 1650, 127);
+void do_autonomous_blue_cubes_only() {
+	move('f', 680, 127);
+	move_slide_to_position(600);
 	wait_for_slide_done();
-
-	move_arm_to_position(410);
+	move_slide_to_position(1810);
+	move_arm_to_position(605);
 	wait_for_arm_done();
-	turn('a', 1405, 100);
-	move_slide_to_position(700);
+	move('f', 550, 127);
 	wait_for_slide_done();
-	move('b', 400, 127);*/
+	turn('a', 760, 127);
+	move('f', 200, 127);
+	move_slide_to_position(200);
+	wait_for_slide_done();
+	move('b', 400, 127);
 
 }
 ///////////////////////////////
@@ -1419,7 +1423,7 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 
 	// Move back to Skyrise delivery point
 	// At same time lower slide so Skyrise is just above Delivery target
-	start_move('b', 600 + 65 + SKY1_Y_OFFSET, 127); //also defining skyrise 1 for accuracy
+	start_move('b', 600 + 30 + SKY1_Y_OFFSET, 127); //also defining skyrise 1 for accuracy
 	move_slide_to_position(450);
 	wait_for_move_done(600 + 65 + SKY1_Y_OFFSET);
 	signed_move('r', 110 - SKY1_X_OFFSET, 127);
@@ -1429,7 +1433,7 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 	wait_for_slide_done();
 
 	// Lower slide to deliver First Skyrise
-	return;
+
 
 	move_slide_to_position(0);
 	wait_for_slide_done();
@@ -1441,7 +1445,7 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 	// Move back a bit and then raise slide to pick up second cube
 	move('b', 325, 55);
 	wait1Msec(100);
-	move_slide_to_position(425);
+	move_slide_to_position(450);
 	wait_for_slide_done();
 
 	// Raise slide so that both cubes are above 2 skyrises
@@ -1462,11 +1466,11 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 	// Release cubes and turn towards wall
 	move('f', 375 + SKY2_Y_OFFSET, 127);
 	move('c', 685, 127);
-	move('r', 140 + 30 + SKY2_X_OFFSET, 127);
-	move('b', 50, 127);
-	move_arm_to_position(0);
+	//move('r', 140 + 30 + SKY2_X_OFFSET, 127);
+	//move('b', 50, 127);
+//	move_arm_to_position(0);
 	wait_for_arm_done();
-
+return;
 
 }
 
@@ -1728,16 +1732,18 @@ task autonomous()
 
 	switch( MyAutonomous ) {
 	case    0:
-		do_autonomous_red_cube_only();
+		do_autonomous_red_skyrise(0,0);
+
+
 		break;
 	case    1:
-		do_autonomous_red_cube_only();
+		do_autonomous_red_cubes_only();
 		break;
 	case    2:
 		do_autonomous_blue_skyrise(0, 0);
 		break;
 	case    3:
-		do_autonomous_blue_cube_only();
+		do_autonomous_blue_cubes_only();
 		break;
 	case    4:
 		do_programming_skills(0,0);
