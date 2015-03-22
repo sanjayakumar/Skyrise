@@ -716,12 +716,11 @@ void do_autonomous_red_skyrise(int x_offset, int y_offset) {
 	start_move('b', 600 + SKY1_Y_OFFSET, 127); //also defining skyrise 1 for accuracy
 	move_slide_to_position(450);
 	wait_for_move_done(600 + SKY1_Y_OFFSET);
-	signed_move('l', 110 - SKY1_X_OFFSET, 127);
+	signed_move('l', 85 - SKY1_X_OFFSET, 127);
 	wait1Msec(100);
-	move('b', 475, 127);
+	move('b', 550, 127);
 	wait1Msec(300);
 	wait_for_slide_done();
-
 	// Lower slide to deliver First Skyrise
 	move_slide_to_position(0);
 	wait_for_slide_done();
@@ -732,19 +731,18 @@ void do_autonomous_red_skyrise(int x_offset, int y_offset) {
 
 	// Move back a bit and then raise slide to pick up second cube
 	move('b', 325, 55);
-	wait1Msec(100);
 	move_slide_to_position(450);
 	wait_for_slide_done();
 
 	// Raise slide so that both cubes are above 2 skyrises
 	// Move forward at the same time
-	move_slide_to_position(1250);
+	move_slide_to_position(1275);
 	start_move('f', 1125, 127);
 	move_arm_to_position(150);
 	wait_for_move_done(1125);
 
 	// Turn, Backup and Lower Slide to deliver two cubes
-	move('c', 650, 127);
+	move('c', 625, 127);
 	wait_for_slide_done();
 	move('b', 400, 127);
 	move_slide_to_position(0);
@@ -752,9 +750,10 @@ void do_autonomous_red_skyrise(int x_offset, int y_offset) {
 	wait_for_slide_done();
 
 	// Release cubes and turn towards wall
-	move('f', 375 + SKY2_Y_OFFSET, 127);
-	move('a', 650, 127);
-	move('l', 140 + 30 + SKY2_X_OFFSET, 127);
+	move('f', 350 + SKY2_Y_OFFSET, 127);
+	//move('a', 650, 127);
+
+	//move('l', 140 + 30 + SKY2_X_OFFSET, 127);
 	//move('b', 50, 127);
 	//move_arm_to_position(0);
 	wait_for_arm_done();
@@ -1359,6 +1358,9 @@ void do_autonomous_blue_cube_only() {
 }
 
 void do_autonomous_red_cubes_only() {
+
+
+
 	move('f', 680, 127);
 	move_slide_to_position(600);
 	wait_for_slide_done();
@@ -1403,15 +1405,15 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 
 	// Deliver Blue Skyrise and Two Cubes (in 15 seconds)
 
-	// 3/2/2015: Copying from Red (and hence Programming Skills)
+	// 3/17/2015: Copying first part from Programming Skills
+
 	//
 	// Getting the First Skyrise section
 	//
 
 	// Raise slide to release Skyrise Intakes
-	move_slide_to_position(425);
+	move_slide_to_position(445);
 	wait_for_slide_done();
-
 
 	// Move forward to grab first Skyrise
 	move('f', 265, 80);
@@ -1423,18 +1425,15 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 
 	// Move back to Skyrise delivery point
 	// At same time lower slide so Skyrise is just above Delivery target
-	start_move('b', 600 + 30 + SKY1_Y_OFFSET, 127); //also defining skyrise 1 for accuracy
+	start_move('b', 600 + SKY1_Y_OFFSET, 127); //also defining skyrise 1 for accuracy
 	move_slide_to_position(450);
-	wait_for_move_done(600 + 65 + SKY1_Y_OFFSET);
-	signed_move('r', 110 - SKY1_X_OFFSET, 127);
+	wait_for_move_done(600 + SKY1_Y_OFFSET);
+	signed_move('r', 85 - SKY1_X_OFFSET, 127);
 	wait1Msec(100);
-	move('b', 475, 127);
+	move('b', 515, 127);
 	wait1Msec(300);
 	wait_for_slide_done();
-
 	// Lower slide to deliver First Skyrise
-
-
 	move_slide_to_position(0);
 	wait_for_slide_done();
 
@@ -1444,33 +1443,32 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 
 	// Move back a bit and then raise slide to pick up second cube
 	move('b', 325, 55);
-	wait1Msec(100);
 	move_slide_to_position(450);
 	wait_for_slide_done();
 
 	// Raise slide so that both cubes are above 2 skyrises
 	// Move forward at the same time
-	move_slide_to_position(1250);
+	move_slide_to_position(1275);
 	start_move('f', 1125, 127);
 	move_arm_to_position(150);
 	wait_for_move_done(1125);
 
 	// Turn, Backup and Lower Slide to deliver two cubes
-	move('a', 685, 127);
+	move('a', 700, 127);
 	wait_for_slide_done();
-	move('b', 400, 127);
+	move('b', 335, 127);
 	move_slide_to_position(0);
 
 	wait_for_slide_done();
 
 	// Release cubes and turn towards wall
-	move('f', 375 + SKY2_Y_OFFSET, 127);
-	move('c', 685, 127);
-	//move('r', 140 + 30 + SKY2_X_OFFSET, 127);
+	move('f', 375 + SKY2_Y_OFFSET, 75);
+	//move('a', 650, 127);
+
+	//move('l', 140 + 30 + SKY2_X_OFFSET, 127);
 	//move('b', 50, 127);
-//	move_arm_to_position(0);
+	//move_arm_to_position(0);
 	wait_for_arm_done();
-return;
 
 }
 
@@ -1732,9 +1730,9 @@ task autonomous()
 
 	switch( MyAutonomous ) {
 	case    0:
-		do_autonomous_red_skyrise(0,0);
-
-
+		do_autonomous_blue_skyrise(0, 0);
+		//do_autonomous_red_skyrise(0,0);
+	  //do_autonomous_blue_skyrise(0,0);
 		break;
 	case    1:
 		do_autonomous_red_cubes_only();
