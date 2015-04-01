@@ -80,7 +80,7 @@
 
 // This is the preset height for picking up the skyrise section at the highest point (to deliver the first one)
 #define SKYRISE_MIDDLE_INTAKE_HEIGHT 430
-#define SKYRISE_LOW_INTAKE_HEIGHT    278
+#define SKYRISE_LOW_INTAKE_HEIGHT    200
 
 #define USER_CONTROL_LOOP_TIME	50 // Milliseconds
 #define PID_LOOP_TIME						25
@@ -1359,18 +1359,30 @@ void do_autonomous_blue_cube_only() {
 
 void do_autonomous_red_cubes_only() {
 
-
-
-	move('f', 680, 127);
-	move_slide_to_position(600);
+ //deliver pre-load
+	move_slide_to_position(485);
 	wait_for_slide_done();
-	move_slide_to_position(1810);
+	move('b', 235, 90);
+	move('f', 85, 127);
+	move_slide_to_position(0);
+	wait_for_slide_done();
+
+
+ //deliver second cube
+	move('f', 765, 127);
+
+	start_move('f', 200, 127);
+	move_slide_to_position(1000);
 	move_arm_to_position(605);
 	wait_for_arm_done();
-	move('f', 500, 127);
+	wait_for_move_done(200);
 	wait_for_slide_done();
-	turn('c', 850, 127);
-	move('f', 200, 127);
+
+	move('f', 250, 127);
+
+
+	turn('c', 780, 127);
+	move('f', 185, 127);
 	move_slide_to_position(200);
 	wait_for_slide_done();
 	move('b', 400, 127);
@@ -1378,16 +1390,30 @@ void do_autonomous_red_cubes_only() {
 
 
 void do_autonomous_blue_cubes_only() {
-	move('f', 680, 127);
-	move_slide_to_position(600);
+//deliver pre-load
+	move_slide_to_position(485);
 	wait_for_slide_done();
-	move_slide_to_position(1810);
+	move('b', 235, 90);
+	move('f', 85, 127);
+	move_slide_to_position(0);
+	wait_for_slide_done();
+
+
+ //deliver second cube
+	move('f', 765, 127);
+
+	start_move('f', 200, 127);
+	move_slide_to_position(1000);
 	move_arm_to_position(605);
 	wait_for_arm_done();
-	move('f', 550, 127);
+	wait_for_move_done(200);
 	wait_for_slide_done();
-	turn('a', 760, 127);
-	move('f', 200, 127);
+
+	move('f', 250, 127);
+
+
+	turn('a', 750, 127);
+	move('f', 185, 127);
 	move_slide_to_position(200);
 	wait_for_slide_done();
 	move('b', 400, 127);
@@ -1469,7 +1495,7 @@ void do_autonomous_blue_skyrise(int x_offset, int y_offset) {
 	//move('b', 50, 127);
 	//move_arm_to_position(0);
 	wait_for_arm_done();
-
+// move left more BEFORE SKYRISE DELIVERY
 }
 
 void do_nothing() {
@@ -1730,9 +1756,10 @@ task autonomous()
 
 	switch( MyAutonomous ) {
 	case    0:
-		do_autonomous_blue_skyrise(0, 0);
+		do_autonomous_blue_cubes_only();
+		//do_autonomous_red_cubes_only();
+		//do_autonomous_blue_skyrise(0, 0);
 		//do_autonomous_red_skyrise(0,0);
-	  //do_autonomous_blue_skyrise(0,0);
 		break;
 	case    1:
 		do_autonomous_red_cubes_only();
